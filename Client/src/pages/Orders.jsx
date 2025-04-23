@@ -19,7 +19,7 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/order");
+      const res = await axios.get("https://burka-2.onrender.com/order");
       console.log(res)
       setOrders(res.data.orders);
       setFilteredOrders(res.data.orders);
@@ -33,7 +33,7 @@ const Orders = () => {
   // Fetch payment details for a specific order
   const fetchPaymentDetails = async (orderId) => {
     try {
-      const res = await axios.get(`http://localhost:8080/payments/${orderId}`);
+      const res = await axios.get(`https://burka-2.onrender.com/payments/${orderId}`);
    
       setPaymentDetails(res.data.payments || []);
     } catch (err) {
@@ -56,7 +56,7 @@ const Orders = () => {
         return;
       }
 
-      await axios.put(`http://localhost:8080/order/${orderId}`, { status: newStatus });
+      await axios.put(`https://burka-2.onrender.com/order/${orderId}`, { status: newStatus });
       fetchOrders();
     } catch (err) {
       console.error("Failed to update order status:", err);
