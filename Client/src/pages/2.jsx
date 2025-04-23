@@ -1,71 +1,71 @@
 import { useRef, useState, useEffect } from "react";
 import { getProductByBarcode } from "../api";
 import { QrCode, Camera, AlertCircle } from "lucide-react";
-import { useCart } from "../CartContext"; // Import CartContext
+import { useCart } from "../CartContext";
+import jsQR from "jsqr";
 
 const ScanQRCode = () => {
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const [product, setProduct] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState(null);
   const [barcode, setBarcode] = useState(null);
-  const { fetchCart } = useCart(); // Use CartContext to fetch updated cart
+  const { fetchCart } = useCart();
 
   useEffect(() => {
     if (!scanning) return;
 
-    // Check for BarcodeDetector support
-    if (!("BarcodeDetector" in window)) {
-      setError("Barcode Detection API is not supported in this browser.");
-      setScanning(false);
-      return;
-    }
-
-    // Initialize the Barcode Detector with supported formats
-    const barcodeDetector = new BarcodeDetector({ formats: ["qr_code", "ean_13", "code_128"] });
-
     let stream;
+    let animationId;
 
     const startCamera = async () => {
       try {
-        // Access the camera
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        videoRef.current.srcObject = stream; // Assign stream to video element
-        videoRef.current.play();
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+        });
 
-        // Barcode detection loop
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current.play();
+            detectBarcode();
+          };
+        }
+
         const detectBarcode = async () => {
-          try {
-            const barcodes = await barcodeDetector.detect(videoRef.current); // Detect barcodes
-            if (barcodes.length > 0) {
-              const scannedBarcode = barcodes[0].rawValue;
-              setBarcode(scannedBarcode);
+          if (!videoRef.current || !canvasRef.current) return;
 
-              // Fetch product details using the scanned barcode
-              try {
-                const response = await getProductByBarcode(scannedBarcode);
-                setProduct(response.data);
-                setScanning(false);
+          const canvas = canvasRef.current;
+          const context = canvas.getContext("2d");
 
-                fetchCart();
-              } catch (error) {
-                setError("Product not found. Please try again or add this product.");
-                setScanning(false);
-              }
+          canvas.width = videoRef.current.videoWidth;
+          canvas.height = videoRef.current.videoHeight;
+
+          context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+          if (code) {
+            const scannedBarcode = code.data;
+            setBarcode(scannedBarcode);
+
+            try {
+              const response = await getProductByBarcode(scannedBarcode);
+              setProduct(response.data);
+              setScanning(false);
+              fetchCart();
+            } catch (err) {
+              setError("Product not found. Please try again or add this product.");
+              setScanning(false);
             }
-          } catch (err) {
-            console.error("Error detecting barcode:", err);
-          }
-
-          // Continue scanning if still in scanning mode
-          if (scanning) {
-            requestAnimationFrame(detectBarcode);
+          } else if (scanning) {
+            animationId = requestAnimationFrame(detectBarcode);
           }
         };
-
-        detectBarcode();
-      } catch (error) {
-        console.error("Error accessing camera:", error);
+      } catch (err) {
+        console.error("Error accessing camera:", err);
         setError("Unable to access the camera. Please check permissions or run the code on a secure server.");
         setScanning(false);
       }
@@ -73,14 +73,13 @@ const ScanQRCode = () => {
 
     startCamera();
 
-    // Cleanup on component unmount or when scanning stops
     return () => {
       if (stream) {
-        const tracks = stream.getTracks();
-        tracks.forEach((track) => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       }
+      cancelAnimationFrame(animationId);
     };
-  }, [scanning]);
+  }, [scanning, fetchCart]);
 
   const startScan = () => {
     setError(null);
@@ -104,7 +103,8 @@ const ScanQRCode = () => {
 
       <div className="p-6">
         <div className="relative bg-black rounded-lg overflow-hidden mb-4">
-          <video ref={videoRef} className="w-full h-64 object-cover"></video>
+          <video ref={videoRef} className="w-full h-64 object-cover" />
+          <canvas ref={canvasRef} className="hidden" />
 
           {!scanning && !product && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 text-white">
@@ -144,7 +144,9 @@ const ScanQRCode = () => {
 
         {barcode && (
           <div className="mt-4 p-3 bg-gray-100 rounded-md">
-            <p className="text-sm text-gray-700">Scanned Barcode: <span className="font-medium">{barcode}</span></p>
+            <p className="text-sm text-gray-700">
+              Scanned Barcode: <span className="font-medium">{barcode}</span>
+            </p>
           </div>
         )}
 
