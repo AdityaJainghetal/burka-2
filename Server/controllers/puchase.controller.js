@@ -243,6 +243,30 @@ const purchaseproduct =async (req, res) => {
       res.status(500).json({ message: err.message });
     }
   }
+  const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
+      const { barcode } = req.body;
+    
+      if (!barcode) {
+        res.status(400);
+        throw new Error("Barcode is required");
+      }
+    
+      const product = await Product.findOne({ barcode });
+    
+      if (!product) {
+        res.status(404);
+        throw new Error("Product not found");
+      }
+    
+      product.quantity += 1;
+      await product.save();
+    
+      res.json({
+        message: "Quantity increased by 1",
+        updatedQuantity: product.quantity,
+        productId: product._id,
+      });
+    });
   
  
 
