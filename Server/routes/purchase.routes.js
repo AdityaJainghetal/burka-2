@@ -8,7 +8,7 @@ const router = express.Router();
 
 
 
-router.get("/purchase/barcode/:barcode", getProductByBarcode);
-router.put("/purchase/scan", scanAndIncreaseQuantity);
+router.get("/barcode/:barcode", getProductByBarcode);
+router.put("/scan", scanAndIncreaseQuantity);
 
 module.exports = router;
