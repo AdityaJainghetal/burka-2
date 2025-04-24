@@ -170,53 +170,7 @@ const Product = require("../models/Purchase.model");
 // @desc    Get product by barcode
 // @route   GET /api/products/barcode/:barcode
 // @access  Public
-const getProductByBarcode = 
-// asyncHandler(async (req, res) => {
-//   const { barcode } = req.params;
-
-//   const product = await Product.findOne({ barcode }).select('-__v');
-
-//   if (!product) {
-//     res.status(404);
-//     throw new Error('Product not found');
-//   }
-
-//   res.json(product);
-// });
-
-// @desc    Scan and increase quantity
-// @route   PUT /api/purchase/scan
-// @access  Public
-// const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
-//   const { barcode } = req.body;
-
-//   if (!barcode) {
-//     res.status(400);
-//     throw new Error('Barcode is required');
-//   }
-
-//   const product = await Product.findOne({ barcode });
-
-//   if (!product) {
-//     res.status(404);
-//     throw new Error('Product not found');
-//   }
-
-//   product.quantity += 1;
-//   const updatedProduct = await product.save();
-
-//   res.json({
-//     success: true,
-//     message: 'Product quantity updated',
-//     product: {
-//       _id: updatedProduct._id,
-//       title: updatedProduct.title,
-//       quantity: updatedProduct.quantity,
-//       barcode: updatedProduct.barcode
-//     }
-//   });
-// });
-async function scanBarcode(barcode) {
+const getProductByBarcode = async function scanBarcode(barcode) {
   try {
       const product = await Product.findOne({ barcode: barcode });
       if (product) {
@@ -243,35 +197,36 @@ const purchaseproduct =async (req, res) => {
       res.status(500).json({ message: err.message });
     }
   }
-  const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
-      const { barcode } = req.body;
+
+  // const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
+  //     const { barcode } = req.body;
     
-      if (!barcode) {
-        res.status(400);
-        throw new Error("Barcode is required");
-      }
+  //     if (!barcode) {
+  //       res.status(400);
+  //       throw new Error("Barcode is required");
+  //     }
     
-      const product = await Product.findOne({ barcode });
+  //     const product = await Product.findOne({ barcode });
     
-      if (!product) {
-        res.status(404);
-        throw new Error("Product not found");
-      }
+  //     if (!product) {
+  //       res.status(404);
+  //       throw new Error("Product not found");
+  //     }
     
-      product.quantity += 1;
-      await product.save();
+  //     product.quantity += 1;
+  //     await product.save();
     
-      res.json({
-        message: "Quantity increased by 1",
-        updatedQuantity: product.quantity,
-        productId: product._id,
-      });
-    });
+  //     res.json({
+  //       message: "Quantity increased by 1",
+  //       updatedQuantity: product.quantity,
+  //       productId: product._id,
+  //     });
+  //   });
   
  
 
 module.exports = {
   getProductByBarcode,
-  scanAndIncreaseQuantity,
+  // scanAndIncreaseQuantity,
   purchaseproduct
 };
