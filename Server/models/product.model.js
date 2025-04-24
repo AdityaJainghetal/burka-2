@@ -38,12 +38,7 @@ const productSchema = new mongoose.Schema({
        type: mongoose.Schema.Types.ObjectId,
         ref: "Subcategory"
     },
-    product: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'purchase',
-        required: true 
-      },
-      quantity: { type: Number, required: true, min: 1 },
+   
     images: [
         {
             type: String
