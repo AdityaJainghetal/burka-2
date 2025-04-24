@@ -170,53 +170,84 @@ const Product = require("../models/Purchase.model");
 // @desc    Get product by barcode
 // @route   GET /api/products/barcode/:barcode
 // @access  Public
-const getProductByBarcode = asyncHandler(async (req, res) => {
-  const { barcode } = req.params;
+const getProductByBarcode = 
+// asyncHandler(async (req, res) => {
+//   const { barcode } = req.params;
 
-  const product = await Product.findOne({ barcode }).select('-__v');
+//   const product = await Product.findOne({ barcode }).select('-__v');
 
-  if (!product) {
-    res.status(404);
-    throw new Error('Product not found');
-  }
+//   if (!product) {
+//     res.status(404);
+//     throw new Error('Product not found');
+//   }
 
-  res.json(product);
-});
+//   res.json(product);
+// });
 
 // @desc    Scan and increase quantity
 // @route   PUT /api/purchase/scan
 // @access  Public
-const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
-  const { barcode } = req.body;
+// const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
+//   const { barcode } = req.body;
 
-  if (!barcode) {
-    res.status(400);
-    throw new Error('Barcode is required');
+//   if (!barcode) {
+//     res.status(400);
+//     throw new Error('Barcode is required');
+//   }
+
+//   const product = await Product.findOne({ barcode });
+
+//   if (!product) {
+//     res.status(404);
+//     throw new Error('Product not found');
+//   }
+
+//   product.quantity += 1;
+//   const updatedProduct = await product.save();
+
+//   res.json({
+//     success: true,
+//     message: 'Product quantity updated',
+//     product: {
+//       _id: updatedProduct._id,
+//       title: updatedProduct.title,
+//       quantity: updatedProduct.quantity,
+//       barcode: updatedProduct.barcode
+//     }
+//   });
+// });
+async function scanBarcode(barcode) {
+  try {
+      const product = await Product.findOne({ barcode: barcode });
+      if (product) {
+          product.quantity += 1; // Increment quantity
+          await product.save(); // Save the updated product
+          console.log(`Quantity updated: ${product.quantity}`);
+      } else {
+          console.log('Product not found');
+      }
+  } catch (error) {
+      console.error('Error updating quantity:', error);
   }
+}
 
-  const product = await Product.findOne({ barcode });
-
-  if (!product) {
-    res.status(404);
-    throw new Error('Product not found');
-  }
-
-  product.quantity += 1;
-  const updatedProduct = await product.save();
-
-  res.json({
-    success: true,
-    message: 'Product quantity updated',
-    product: {
-      _id: updatedProduct._id,
-      title: updatedProduct.title,
-      quantity: updatedProduct.quantity,
-      barcode: updatedProduct.barcode
+const purchaseproduct =async (req, res) => {
+  
+    try {
+      const product = await Product.findOne({ barcode: req.params.barcode });
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      res.json(product);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
-  });
-});
+  }
+  
+ 
 
 module.exports = {
   getProductByBarcode,
-  scanAndIncreaseQuantity
+  scanAndIncreaseQuantity,
+  purchaseproduct
 };
