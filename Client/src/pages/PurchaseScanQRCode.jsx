@@ -448,11 +448,6 @@
 
 
 
-
-
-
-
-
 import { useRef, useState, useEffect } from "react";
 import { QrCode, Camera, AlertCircle, CheckCircle, Loader2, X, Scan } from "lucide-react";
 import jsQR from "jsqr";
@@ -473,24 +468,23 @@ const PurchaseScanQRCode = () => {
   // Get product by barcode
   const getProductByBarcode = async (barcode) => {
     try {
-      const response = await axios.get(`/api/products/barcode/${barcode}`);
+      const response = await axios.get(`/api/purchase/barcode/${barcode}`);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || "Product not found");
     }
   };
 
-  // Record purchase in backend
-  const recordPurchase = async (productId, quantity) => {
+  // Update product quantity in backend
+  const updateProductQuantity = async (barcode, quantity) => {
     try {
-      const response = await axios.post('/api/purchases', {
-        productId,
-        quantity,
-        purchaseDate: new Date().toISOString()
+      const response = await axios.put('/api/purchase/scan', {
+        barcode,
+        quantity
       });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to record purchase");
+      throw new Error(error.response?.data?.message || "Failed to update product quantity");
     }
   };
 
@@ -579,14 +573,15 @@ const PurchaseScanQRCode = () => {
   };
 
   const handlePurchase = async () => {
-    if (!product) return;
+    if (!product || !barcode) return;
     
     setPurchaseLoading(true);
     try {
-      await recordPurchase(product._id, quantity);
+      await updateProductQuantity(barcode, quantity);
       setPurchaseSuccess(true);
       setProduct(null);
       setBarcode(null);
+      setQuantity(1);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -627,7 +622,7 @@ const PurchaseScanQRCode = () => {
           {purchaseSuccess && (
             <div className="flex items-center bg-green-50 text-green-700 p-3 rounded-lg mb-4 border border-green-200">
               <CheckCircle className="mr-2 flex-shrink-0" />
-              <span>Purchase recorded successfully!</span>
+              <span>Quantity updated successfully!</span>
             </div>
           )}
         </div>
@@ -701,7 +696,7 @@ const PurchaseScanQRCode = () => {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Quantity:</span>
+                  <span className="text-gray-600">Quantity to Add:</span>
                   <div className="flex items-center space-x-2">
                     <button 
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -728,7 +723,7 @@ const PurchaseScanQRCode = () => {
                     }`}
                   >
                     {purchaseLoading && <Loader2 className="h-5 w-5 animate-spin" />}
-                    <span>{purchaseLoading ? 'Processing...' : 'Confirm Purchase'}</span>
+                    <span>{purchaseLoading ? 'Processing...' : 'Update Quantity'}</span>
                   </button>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 
 const express = require('express');
-const {  getProductByBarcode } = require('../controllers/puchase.controller');
+const {  getProductByBarcode ,scanAndIncreaseQuantity} = require('../controllers/puchase.controller');
 const router = express.Router();
 
 // To this (if using CommonJS):
@@ -8,7 +8,7 @@ const router = express.Router();
 
 
 
-router.get("/products/barcode/:barcode", getProductByBarcode);
-// router.put("/purchase/scan", scanAndIncreaseQuantity);
+router.get("/purchase/barcode/:barcode", getProductByBarcode);
+router.put("/purchase/scan", scanAndIncreaseQuantity);
 
 module.exports = router;
