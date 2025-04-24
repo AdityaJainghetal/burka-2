@@ -6,10 +6,6 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    quantity:{
-        type:Number,
-        default:"0"
-    },
     barcode: {
         type: String,
     },
@@ -38,7 +34,6 @@ const productSchema = new mongoose.Schema({
        type: mongoose.Schema.Types.ObjectId,
         ref: "Subcategory"
     },
-   
     images: [
         {
             type: String
