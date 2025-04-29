@@ -13,6 +13,7 @@ const UserRegistration = require("./routes/RegistartionRoute");
 const orderRouter = require("./routes/order.routes");
 const paymentRouter = require("./routes/payment.routes");
 const purchaseproduct = require("./routes/purchase.routes");
+const adminlogin = require("./routes/admin.routes")
 // app.use(morgan('dev'))
 app.use(cors())
 
@@ -38,6 +39,7 @@ app.use("/user", UserRegistration)
 app.use("/order", orderRouter)
 app.use("/payments", paymentRouter)
 app.use("/purchase", purchaseproduct)
+app.use("/admin", adminlogin)
 
 app.listen(8080, () => {
     console.log("Server is running on port 8080");

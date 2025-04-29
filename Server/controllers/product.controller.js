@@ -25,7 +25,6 @@ const getProductById = async (req, res) => {
     }
 };
 
-// Create a new product
 
 
 

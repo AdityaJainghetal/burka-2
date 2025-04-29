@@ -28,6 +28,7 @@ const CartPage = () => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [checkoutDone, setCheckoutDone] = useState(false);
 
+
   // Initialize quantities
   useEffect(() => {
     const initial = {};
@@ -42,7 +43,7 @@ const CartPage = () => {
     const fetchVendors = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("https://burka-2.onrender.com/user");
+        const res = await axios.get("http://localhost:8080/user");
         setVendors(res.data);
       } catch {
         setError("Failed to load vendors.");
@@ -108,7 +109,7 @@ const CartPage = () => {
   const handleDelete = async id => {
     setItemsBeingDeleted(prev => ({ ...prev, [id]: true }));
     try {
-      await axios.delete(`https://burka-2.onrender.com/cart/remove/${id}`);
+      await axios.delete(`http://localhost:8080/cart/remove/${id}`);
       await fetchCart();
     } catch {
       setError("Failed to delete.");
@@ -145,10 +146,11 @@ const CartPage = () => {
       
     };
 
+
     console.log(payload, "PAYLOAd")
     try {
       const res = await axios.post(
-        "https://burka-2.onrender.com/order",
+        "http://localhost:8080/order",
         payload
       );
 
@@ -159,7 +161,7 @@ const CartPage = () => {
         await Promise.all(
           cart.map(item =>
             axios.delete(
-              `https://burka-2.onrender.com/cart/remove/${item.product._id}`
+              `http://localhost:8080/cart/remove/${item.product._id}`
             )
           )
         );

@@ -10,5 +10,4 @@ router.put('/:id', updateProduct);
 router.delete('/:id', deleteProduct);
 router.put('/purchase', purchaseproduct);
 
-
 module.exports = router;

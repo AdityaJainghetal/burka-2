@@ -34,7 +34,7 @@ const PaymentForm = ({ orderId, totalAmount, dueAmount, onPaymentSuccess }) => {
     }
 
     try {
-      const res = await axios.post('https://burka-2.onrender.com/payments', {
+      const res = await axios.post('http://localhost:8080/payments', {
         ...formData,
         orderId,
       });
