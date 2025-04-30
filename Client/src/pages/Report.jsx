@@ -222,7 +222,7 @@ const TodayOrders = () => {
             className="px-1 py-1 text-xs border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 bg-white"
           >
             <option value="pending">Pending</option>
-            <option value="processing">Processing</option>
+            {/* <option value="processing">Processing</option> */}
             <option value="shipped">Shipped</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>

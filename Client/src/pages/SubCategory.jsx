@@ -112,7 +112,7 @@ const SubCategoryManagement = () => {
 
       <div className="p-6">
         {/* Category Filter */}
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <label htmlFor="categoryFilter" className="block text-sm font-medium text-gray-700 mb-1">
             Filter by Category
           </label>
@@ -129,7 +129,7 @@ const SubCategoryManagement = () => {
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
 
         {/* Add New Sub-Category */}
         <div className="mb-6">
