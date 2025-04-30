@@ -322,7 +322,7 @@ const AdminLogin = ({ onLogin }) => {
                             >
                                 <option value="">Select user type</option>
                                 <option value="admin">Admin</option>
-                                <option value="user">User</option>
+                                {/* <option value="user">User</option> */}
                             </select>
                         </div>
 

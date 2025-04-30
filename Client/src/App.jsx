@@ -717,347 +717,222 @@ function AppContent({ onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      {/* Sidebar - Hidden on mobile */}
-      <div className="hidden md:block">
-        <Sidbar onLogout={onLogout} />
-      </div>
-
-      <div className="flex-1 flex flex-col">
-        {/* Responsive Header */}
-        <header className="bg-white shadow-sm sticky top-0 z-10">
-          <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16 items-center">
-              {/* Mobile menu button */}
-              <div className="md:hidden flex items-center">
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                >
-                  <Menu size={24} />
-                </button>
-              </div>
-
-              {/* Logo - Center on mobile, left on desktop */}
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-primary-600">ProductScan</h1>
-              </div>
-
-              {/* Desktop Navigation */}
-              <div className="hidden md:flex items-center space-x-6">
-                <NavLink
-                  to="/cart"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "text-primary-600 relative flex items-center"
-                      : "text-gray-500 hover:text-gray-700 relative flex items-center"
-                  }
-                >
-                  <ShoppingCart size={24} />
-                  {cart.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                      {cart.length}
-                    </span>
-                  )}
-                  <span className="ml-2 hidden lg:inline">Cart</span>
-                </NavLink>
-
-                <button
-                  onClick={onLogout}
-                  className="text-gray-500 hover:text-gray-700 flex items-center"
-                >
-                  <LogOut size={20} className="mr-1" />
-                  <span className="text-sm hidden lg:inline">Logout</span>
-                </button>
-              </div>
-
-              {/* Mobile Cart Icon */}
-              <div className="md:hidden flex items-center">
-                <NavLink
-                  to="/cart"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "text-primary-600 relative"
-                      : "text-gray-500 hover:text-gray-700 relative"
-                  }
-                >
-                  <ShoppingCart size={24} />
-                  {cart.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                      {cart.length}
-                    </span>
-                  )}
-                </NavLink>
-              </div>
+    <div className="min-h-screen flex bg-gray-50 ">
+    {/* Sidebar - Hidden on mobile */}
+    <div className="hidden md:block">
+      <Sidbar onLogout={onLogout} />
+    </div>
+  
+    <div className="flex-1 flex flex-col">
+      {/* Responsive Header */}
+      <header className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                <Menu size={24} />
+              </button>
+            </div>
+  
+            {/* Logo - Center on mobile, left on desktop */}
+            <div className="flex-shrink-0 flex items-center">
+              <h1 className="text-xl font-bold text-primary-600">ProductScan</h1>
+            </div>
+  
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-6">
+              <NavLink
+                to="/cart"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-primary-600 relative flex items-center"
+                    : "text-gray-500 hover:text-gray-700 relative flex items-center"
+                }
+              >
+                <ShoppingCart size={24} />
+                {cart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                    {cart.length}
+                  </span>
+                )}
+                <span className="ml-2 hidden lg:inline">Cart</span>
+              </NavLink>
+  
+              <button
+                onClick={onLogout}
+                className="text-gray-500 hover:text-gray-700 flex items-center"
+              >
+                <LogOut size={20} className="mr-1" />
+                <span className="text-sm hidden lg:inline">Logout</span>
+              </button>
+            </div>
+  
+            {/* Mobile Cart Icon */}
+            <div className="md:hidden flex items-center">
+              <NavLink
+                to="/cart"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-primary-600 relative"
+                    : "text-gray-500 hover:text-gray-700 relative"
+                }
+              >
+                <ShoppingCart size={24} />
+                {cart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                    {cart.length}
+                  </span>
+                )}
+              </NavLink>
             </div>
           </div>
-          {mobileMenuOpen && (
-  <div className="md:hidden bg-white py-2 px-4 shadow-md h-[calc(100vh-4rem)] overflow-y-scroll">
-    <div className="flex flex-col space-y-3">
-      <NavLink
-        to="/"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <Home size={20} className="mr-2" />
-        <span>Products</span>
-      </NavLink>
-      <NavLink
-        to="/scan"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <QrCode size={20} className="mr-2" />
-        <span>Scan</span>
-      </NavLink>
-      <NavLink
-        to="/create"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <PlusCircle size={20} className="mr-2" />
-        <span>Add Product</span>
-      </NavLink>
-      <NavLink
-        to="/categories"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <Layers size={20} className="mr-2" />
-        <span>Categories</span>
-      </NavLink>
-      <NavLink
-        to="/subcategories"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <Layers size={20} className="mr-2" />
-        <span>Subcategories</span>
-      </NavLink>
-      <NavLink
-        to="/cart"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <ShoppingCart size={20} className="mr-2" />
-        <span>Cart</span>
-      </NavLink>
-      <NavLink
-        to="/orders"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <Layers size={20} className="mr-2" />
-        <span>Orders</span>
-      </NavLink>
-      {/* <NavLink
-        to="/paymentdetail"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <MdOutlinePayments size={20} className="mr-2" />
-        <span>Payments</span>
-      </NavLink> */}
-      <NavLink
-        to="/purchaseScanQRCode"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <QrCode size={20} className="mr-2" />
-        <span>Purchase Scan</span>
-      </NavLink>
-      <NavLink
-        to="/todayorder"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <Layers size={20} className="mr-2" />
-        <span>Today Orders</span>
-      </NavLink>
-      <NavLink
-        to="/deliverorder"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <Layers size={20} className="mr-2" />
-        <span>Delivered</span>
-      </NavLink>
-      <NavLink
-        to="/shippedorderdisplay"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <Layers size={20} className="mr-2" />
-        <span>Shipped</span>
-      </NavLink>
-      <NavLink
-        to="/cancelorder"
-        onClick={() => setMobileMenuOpen(false)}
-        className={({ isActive }) =>
-          isActive
-            ? "text-primary-600 flex items-center py-2"
-            : "text-gray-500 hover:text-gray-700 flex items-center py-2"
-        }
-      >
-        <Layers size={20} className="mr-2" />
-        <span>Cancelled</span>
-      </NavLink>
-      <button
-        onClick={() => {
-          onLogout();
-          setMobileMenuOpen(false);
-        }}
-        className="text-gray-500 hover:text-gray-700 flex items-center py-2"
-      >
-        <LogOut size={20} className="mr-2" />
-        <span>Logout</span>
-      </button>
+        </div>
+  
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white py-2 px-4 shadow-md h-[calc(100vh-4rem)] overflow-y-scroll">
+            <div className="flex flex-col space-y-3">
+            <NavLink to="/dashboard" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <Home size={20} className="mr-2" /><span>Dashboard</span>
+              </NavLink>
+              <NavLink to="/" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <Home size={20} className="mr-2" /><span>Products</span>
+              </NavLink>
+              <NavLink to="/scan" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <QrCode size={20} className="mr-2" /><span>Scan</span>
+              </NavLink>
+              <NavLink to="/create" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <PlusCircle size={20} className="mr-2" /><span>Add Product</span>
+              </NavLink>
+              <NavLink to="/categories" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <Layers size={20} className="mr-2" /><span>Categories</span>
+              </NavLink>
+              <NavLink to="/subcategories" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <Layers size={20} className="mr-2" /><span>Subcategories</span>
+              </NavLink>
+              <NavLink to="/cart" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <ShoppingCart size={20} className="mr-2" /><span>Cart</span>
+              </NavLink>
+              <NavLink to="/orders" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <Layers size={20} className="mr-2" /><span>Orders</span>
+              </NavLink>
+              <NavLink to="/purchaseScanQRCode" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <QrCode size={20} className="mr-2" /><span>Purchase Scan</span>
+              </NavLink>
+              <NavLink to="/todayorder" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <Layers size={20} className="mr-2" /><span>Today Orders</span>
+              </NavLink>
+              <NavLink to="/deliverorder" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <Layers size={20} className="mr-2" /><span>Delivered</span>
+              </NavLink>
+              <NavLink to="/shippedorderdisplay" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <Layers size={20} className="mr-2" /><span>Shipped</span>
+              </NavLink>
+              <NavLink to="/cancelorder" onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => isActive ? "text-primary-600 flex items-center py-2" : "text-gray-500 hover:text-gray-700 flex items-center py-2"}>
+                <Layers size={20} className="mr-2" /><span>Cancelled</span>
+              </NavLink>
+              <button
+                onClick={() => {
+                  onLogout();
+                  setMobileMenuOpen(false);
+                }}
+                className="text-gray-500 hover:text-gray-700 flex items-center py-2"
+              >
+                <LogOut size={20} className="mr-2" /><span>Logout</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </header>
+  
+     <main className="flex-1 max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8 overflow-x-auto">
+        <div className="px-4 py-6 sm:px-0">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<ProductList />} />
+            <Route path="/scan" element={<ScanQRCode />} />
+            <Route path="/create" element={<CreateProduct />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/categories" element={<CategoryManagement />} />
+            <Route path="/subcategories" element={<SubCategoryManagement />} />
+            <Route path="/registration" element={<Registration />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/allpayment/:id" element={<AllPayment />} />
+            <Route path="/paymentdetail" element={<PaymentDetail />} />
+            <Route path="/purchaseScanQRCode" element={<PurchaseScanQRCode />} />
+            <Route path="/todayorder" element={<TodayOrders />} />
+            <Route path="/deliver-order/:id" element={<DeliverOrder />} />
+            <Route path="/ship-order/:id" element={<ShippingModal />} />
+            <Route path="/cancel-order/:id" element={<CancelOrderModal />} />
+            <Route path="/deliverorder" element={<DeliveredOrder />} />
+            <Route path="/shippedorderdisplay" element={<ShippedOrdersDisplay />} />
+            <Route path="/cancelorder" element={<CancelledOrders />} />
+          </Routes>
+        </div>
+      </main>
+  
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200">
+        <div className="flex justify-around">
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              isActive
+                ? "text-primary-600 flex flex-col items-center py-2 px-3"
+                : "text-gray-500 hover:text-gray-700 flex flex-col items-center py-2 px-3"
+            }
+          >
+            <Home size={24} /><span className="text-xs mt-1">Products</span>
+          </NavLink>
+          <NavLink
+            to="/scan"
+            className={({ isActive }) =>
+              isActive
+                ? "text-primary-600 flex flex-col items-center py-2 px-3"
+                : "text-gray-500 hover:text-gray-700 flex flex-col items-center py-2 px-3"
+            }
+          >
+            <QrCode size={24} /><span className="text-xs mt-1">Scan</span>
+          </NavLink>
+          <NavLink
+            to="/create"
+            className={({ isActive }) =>
+              isActive
+                ? "text-primary-600 flex flex-col items-center py-2 px-3"
+                : "text-gray-500 hover:text-gray-700 flex flex-col items-center py-2 px-3"
+            }
+          >
+            <PlusCircle size={24} /><span className="text-xs mt-1">Add</span>
+          </NavLink>
+          <NavLink
+            to="/categories"
+            className={({ isActive }) =>
+              isActive
+                ? "text-primary-600 flex flex-col items-center py-2 px-3"
+                : "text-gray-500 hover:text-gray-700 flex flex-col items-center py-2 px-3"
+            }
+          >
+            <Layers size={24} /><span className="text-xs mt-1">Categories</span>
+          </NavLink>
+          <NavLink
+            to="/paymentdetail"
+            className={({ isActive }) =>
+              isActive
+                ? "text-primary-600 flex flex-col items-center py-2 px-3"
+                : "text-gray-500 hover:text-gray-700 flex flex-col items-center py-2 px-3"
+            }
+          >
+            <MdOutlinePayments size={24} /><span className="text-xs mt-1">Payments</span>
+          </NavLink>
+        </div>
+      </nav>
     </div>
   </div>
-)}
-
-
-       
-        </header>
-
-        <main className="flex-1 max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/" element={<ProductList />} />
-              <Route path="/scan" element={<ScanQRCode />} />
-              <Route path="/create" element={<CreateProduct />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/categories" element={<CategoryManagement />} />
-              <Route path="/subcategories" element={<SubCategoryManagement />} />
-              <Route path="/registration" element={<Registration />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/allpayment/:id" element={<AllPayment />} />
-              <Route path="/paymentdetail" element={<PaymentDetail />} />
-              <Route path="/purchaseScanQRCode" element={<PurchaseScanQRCode />} />
-              <Route path="/todayorder" element={<TodayOrders />} />
-              <Route path="/deliver-order/:id" element={<DeliverOrder />} />
-              <Route path="/ship-order/:id" element={<ShippingModal />} />
-              <Route path="/cancel-order/:id" element={<CancelOrderModal />} />
-              <Route path="/deliverorder" element={<DeliveredOrder />} />
-              <Route path="/shippedorderdisplay" element={<ShippedOrdersDisplay />} />
-              <Route path="/cancelorder" element={<CancelledOrders />} />
-            </Routes>
-          </div>
-        </main>
-
-        {/* Mobile Bottom Navigation */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200">
-          <div className="flex justify-around">
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                isActive
-                  ? "text-primary-600 flex flex-col items-center py-2 px-3"
-                  : "text-gray-500 hover:text-gray-700 flex flex-col items-center py-2 px-3"
-              }
-            >
-              <Home size={24} />
-              <span className="text-xs mt-1">Products</span>
-            </NavLink>
-            <NavLink
-              to="/scan"
-              className={({ isActive }) =>
-                isActive
-                  ? "text-primary-600 flex flex-col items-center py-2 px-3"
-                  : "text-gray-500 hover:text-gray-700 flex flex-col items-center py-2 px-3"
-              }
-            >
-              <QrCode size={24} />
-              <span className="text-xs mt-1">Scan</span>
-            </NavLink>
-            <NavLink
-              to="/create"
-              className={({ isActive }) =>
-                isActive
-                  ? "text-primary-600 flex flex-col items-center py-2 px-3"
-                  : "text-gray-500 hover:text-gray-700 flex flex-col items-center py-2 px-3"
-              }
-            >
-              <PlusCircle size={24} />
-              <span className="text-xs mt-1">Add</span>
-            </NavLink>
-            <NavLink
-              to="/categories"
-              className={({ isActive }) =>
-                isActive
-                  ? "text-primary-600 flex flex-col items-center py-2 px-3"
-                  : "text-gray-500 hover:text-gray-700 flex flex-col items-center py-2 px-3"
-              }
-            >
-              <Layers size={24} />
-              <span className="text-xs mt-1">Categories</span>
-            </NavLink>
-            <NavLink
-              to="/paymentdetail"
-              className={({ isActive }) =>
-                isActive
-                  ? "text-primary-600 flex flex-col items-center py-2 px-3"
-                  : "text-gray-500 hover:text-gray-700 flex flex-col items-center py-2 px-3"
-              }
-            >
-              <MdOutlinePayments size={24} />
-              <span className="text-xs mt-1">Payments</span>
-            </NavLink>
-          </div>
-        </nav>
-      </div>
-    </div>
+  
   );
 }
 
