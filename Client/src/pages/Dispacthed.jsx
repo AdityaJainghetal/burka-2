@@ -35,7 +35,7 @@ const DeliverOrder = () => {
     }
 
     try {
-      await axios.put(`http://localhost:8080/order/${id}/deliver`, {
+      await axios.put(`https://burka-2-1.onrender.com/order/${id}/deliver`, {
         deliveryDetails
       });
       navigate('/orders');

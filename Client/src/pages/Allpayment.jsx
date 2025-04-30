@@ -12,10 +12,10 @@ const AllPayment = () => {
   useEffect(() => {
     const fetchOrderAndPayments = async () => {
       try {
-        const orderRes = await axios.get(`http://localhost:8080/order/${id}`);
+        const orderRes = await axios.get(`https://burka-2-1.onrender.com/order/${id}`);
         setOrder(orderRes.data.order);
 
-        const paymentsRes = await axios.get(`http://localhost:8080/payments/${id}`);
+        const paymentsRes = await axios.get(`https://burka-2-1.onrender.com/payments/${id}`);
         setPayments(paymentsRes.data.payments || []);
 
         setLoading(false);
@@ -34,7 +34,7 @@ const AllPayment = () => {
       setPayments([...payments, newPayment]);
 
       // Fetch the updated order to ensure consistency
-      const orderRes = await axios.get(`http://localhost:8080/order/${id}`);
+      const orderRes = await axios.get(`https://burka-2-1.onrender.com/order/${id}`);
       setOrder(orderRes.data.order);
     } catch (err) {
       console.error('Error updating order after payment:', err);
@@ -168,10 +168,10 @@ export default AllPayment;
 //   useEffect(() => {
 //     const fetchOrderAndPayments = async () => {
 //       try {
-//         const orderRes = await axios.get(`http://localhost:8080/order/${id}`);
+//         const orderRes = await axios.get(`https://burka-2-1.onrender.com/order/${id}`);
 //         setOrder(orderRes.data.order);
 
-//         const paymentsRes = await axios.get(`http://localhost:8080/payments/${id}`);
+//         const paymentsRes = await axios.get(`https://burka-2-1.onrender.com/payments/${id}`);
 //         setPayments(paymentsRes.data.payments || []);
 
 //         setLoading(false);
@@ -202,10 +202,10 @@ export default AllPayment;
 //     }
 
 //     try {
-//       const res = await axios.post('http://localhost:8080/payment', payload);
+//       const res = await axios.post('https://burka-2-1.onrender.com/payment', payload);
 //       setPayments([...payments, res.data.payment]);
 
-//       const orderRes = await axios.get(`http://localhost:8080/order/${id}`);
+//       const orderRes = await axios.get(`https://burka-2-1.onrender.com/order/${id}`);
 //       setOrder(orderRes.data.order);
 
 //       // Reset form

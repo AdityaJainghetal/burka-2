@@ -47,7 +47,7 @@
 //   const addToCart = async (productId) => {
 //     setAddingToCart((prev) => ({ ...prev, [productId]: true }))
 //     try {
-//       await fetch(`http://localhost:8080/cart/add/${productId}`, {
+//       await fetch(`https://burka-2-1.onrender.com/cart/add/${productId}`, {
 //         method: "POST",
 //       })
 //       await fetchCart()
@@ -433,7 +433,7 @@
 
 //   const updateProduct = async (id, updatedData) => {
 //     try {
-//       const response = await fetch(`http://localhost:8080/product/${id}`, {
+//       const response = await fetch(`https://burka-2-1.onrender.com/product/${id}`, {
 //         method: "PUT",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -664,7 +664,7 @@
 //   const addToCart = async (productId) => {
 //     setAddingToCart((prev) => ({ ...prev, [productId]: true }))
 //     try {
-//       await fetch(`http://localhost:8080/cart/add/${productId}`, {
+//       await fetch(`https://burka-2-1.onrender.com/cart/add/${productId}`, {
 //         method: "POST",
 //       })
 //       await fetchCart()
@@ -1199,7 +1199,7 @@
 
 //   const updateProduct = async (id, updatedData) => {
 //     try {
-//       const response = await fetch(`http://localhost:8080/product/${id}`, {
+//       const response = await fetch(`https://burka-2-1.onrender.com/product/${id}`, {
 //         method: "PUT",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -1378,7 +1378,7 @@
 //   const addToCart = async (productId) => {
 //     setAddingToCart((prev) => ({ ...prev, [productId]: true }))
 //     try {
-//       await fetch(`http://localhost:8080/cart/add/${productId}`, {
+//       await fetch(`https://burka-2-1.onrender.com/cart/add/${productId}`, {
 //         method: "POST",
 //       })
 //       await fetchCart()
@@ -1960,7 +1960,7 @@ const ProductList = () => {
 
   const updateProduct = async (id, updatedData) => {
     try {
-      const response = await fetch(`http://localhost:8080/product/${id}`, {
+      const response = await fetch(`https://burka-2-1.onrender.com/product/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -2171,7 +2171,7 @@ const ProductList = () => {
   const addToCart = async (productId) => {
     setAddingToCart((prev) => ({ ...prev, [productId]: true }))
     try {
-      await fetch(`http://localhost:8080/cart/add/${productId}`, {
+      await fetch(`https://burka-2-1.onrender.com/cart/add/${productId}`, {
         method: "POST",
       })
       await fetchCart()

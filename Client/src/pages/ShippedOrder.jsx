@@ -30,7 +30,7 @@ const ShipOrder = () => {
     setError('');
 
     try {
-      await axios.put(`http://localhost:8080/order/${id}/ship`, {
+      await axios.put(`https://burka-2-1.onrender.com/order/${id}/ship`, {
         remark: shippingDetails.remark,
         shippingDate: shippingDetails.shippingDate
       });

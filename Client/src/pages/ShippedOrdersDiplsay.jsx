@@ -14,7 +14,7 @@ const ShippedOrders = () => {
   const fetchShippedOrders = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8080/order/status/shipped');
+      const response = await axios.get('https://burka-2-1.onrender.com/order/status/shipped');
       const shippedOrders = response.data.orders || [];
       setOrders(shippedOrders);
       toast.success(`Loaded ${shippedOrders.length} shipped orders`);
@@ -33,7 +33,7 @@ const ShippedOrders = () => {
 
   const markAsDelivered = async (orderId) => {
     try {
-      await axios.patch(`http://localhost:8080/order/${orderId}`, {
+      await axios.patch(`https://burka-2-1.onrender.com/order/${orderId}`, {
         status: 'delivered',
         'deliveryDetails.deliveredAt': new Date().toISOString()
       });

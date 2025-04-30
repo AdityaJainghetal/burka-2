@@ -19,7 +19,7 @@
 
 //   const fetchOrders = async () => {
 //     try {
-//       const res = await axios.get("http://localhost:8080/order");
+//       const res = await axios.get("https://burka-2-1.onrender.com/order");
 //       console.log(res)
 //       setOrders(res.data.orders);
 //       setFilteredOrders(res.data.orders);
@@ -33,7 +33,7 @@
 //   // Fetch payment details for a specific order
 //   const fetchPaymentDetails = async (orderId) => {
 //     try {
-//       const res = await axios.get(`http://localhost:8080/payments/${orderId}`);
+//       const res = await axios.get(`https://burka-2-1.onrender.com/payments/${orderId}`);
    
 //       setPaymentDetails(res.data.payments || []);
 //     } catch (err) {
@@ -56,7 +56,7 @@
 //         return;
 //       }
 
-//       await axios.put(`http://localhost:8080/order/${orderId}`, { status: newStatus });
+//       await axios.put(`https://burka-2-1.onrender.com/order/${orderId}`, { status: newStatus });
 //       fetchOrders();
 //     } catch (err) {
 //       console.error("Failed to update order status:", err);
@@ -624,7 +624,7 @@
 
 //   const fetchOrders = async () => {
 //     try {
-//       const res = await axios.get("http://localhost:8080/order");
+//       const res = await axios.get("https://burka-2-1.onrender.com/order");
 //       setOrders(res.data.orders);
 //       setFilteredOrders(res.data.orders);
 //     } catch (err) {
@@ -636,7 +636,7 @@
 
 //   const fetchPaymentDetails = async (orderId) => {
 //     try {
-//       const res = await axios.get(`http://localhost:8080/payments/${orderId}`);
+//       const res = await axios.get(`https://burka-2-1.onrender.com/payments/${orderId}`);
 //       setPaymentDetails(res.data.payments || []);
 //     } catch (err) {
 //       console.error("Failed to fetch payment details:", err);
@@ -668,7 +668,7 @@
 //       const updateData = { status: newStatus };
 //       if (reason) updateData.cancellationReason = reason;
       
-//       await axios.put(`http://localhost:8080/order/${orderId}`, updateData);
+//       await axios.put(`https://burka-2-1.onrender.com/order/${orderId}`, updateData);
 //       fetchOrders();
 //     } catch (err) {
 //       console.error("Failed to update order status:", err);
@@ -1207,7 +1207,7 @@
 
 //   const fetchOrders = async () => {
 //     try {
-//       const res = await axios.get("http://localhost:8080/order");
+//       const res = await axios.get("https://burka-2-1.onrender.com/order");
 //       setOrders(res.data.orders);
 //       setFilteredOrders(res.data.orders);
 //     } catch (err) {
@@ -1219,7 +1219,7 @@
 
 //   const fetchPaymentDetails = async (orderId) => {
 //     try {
-//       const res = await axios.get(`http://localhost:8080/payments/${orderId}`);
+//       const res = await axios.get(`https://burka-2-1.onrender.com/payments/${orderId}`);
 //       setPaymentDetails(res.data.payments || []);
 //     } catch (err) {
 //       console.error("Failed to fetch payment details:", err);
@@ -1248,7 +1248,7 @@
 //       const updateData = { status: newStatus };
 //       if (reason) updateData.cancellationReason = reason;
       
-//       await axios.put(`http://localhost:8080/order/${orderId}`, updateData);
+//       await axios.put(`https://burka-2-1.onrender.com/order/${orderId}`, updateData);
 //       fetchOrders(); // Refresh the orders list
       
 //       // Close modal if open
@@ -1790,7 +1790,7 @@
 //   const fetchOrders = useCallback(async () => {
 //     try {
 //       setState(prev => ({ ...prev, loading: true, error: null }));
-//       const res = await axios.get("http://localhost:8080/order");
+//       const res = await axios.get("https://burka-2-1.onrender.com/order");
 //       setState(prev => ({
 //         ...prev,
 //         orders: res.data.orders,
@@ -1811,7 +1811,7 @@
 //   const fetchPaymentDetails = async (orderId) => {
 //     try {
 //       setState(prev => ({ ...prev, paymentDetailsLoading: true }));
-//       const res = await axios.get(`http://localhost:8080/payments/${orderId}`);
+//       const res = await axios.get(`https://burka-2-1.onrender.com/payments/${orderId}`);
 //       setState(prev => ({
 //         ...prev,
 //         paymentDetails: res.data.payments || [],
@@ -1861,7 +1861,7 @@
 //       const updateData = { status: newStatus };
 //       if (reason) updateData.cancellationReason = reason;
       
-//       await axios.put(`http://localhost:8080/order/${orderId}`, updateData);
+//       await axios.put(`https://burka-2-1.onrender.com/order/${orderId}`, updateData);
 //       await fetchOrders(); // Wait for refresh
       
 //       if (state.selectedOrder?._id === orderId) {
@@ -2178,7 +2178,7 @@
 //   const fetchOrders = useCallback(async () => {
 //     try {
 //       setState(prev => ({ ...prev, loading: true, error: null }));
-//       const res = await axios.get("http://localhost:8080/order");
+//       const res = await axios.get("https://burka-2-1.onrender.com/order");
 //       setState(prev => ({
 //         ...prev,
 //         orders: res.data.orders,
@@ -2199,7 +2199,7 @@
 //   const fetchPaymentDetails = async (orderId) => {
 //     try {
 //       setState(prev => ({ ...prev, paymentDetailsLoading: true }));
-//       const res = await axios.get(`http://localhost:8080/payments/${orderId}`);
+//       const res = await axios.get(`https://burka-2-1.onrender.com/payments/${orderId}`);
 //       setState(prev => ({
 //         ...prev,
 //         paymentDetails: res.data.payments || [],
@@ -2252,7 +2252,7 @@
 //       const updateData = { status: newStatus };
 //       if (reason) updateData.cancellationReason = reason;
       
-//       await axios.put(`http://localhost:8080/order/${orderId}`, updateData);
+//       await axios.put(`https://burka-2-1.onrender.com/order/${orderId}`, updateData);
 //       await fetchOrders(); // Wait for refresh
       
 //       if (state.selectedOrder?._id === orderId) {
@@ -2686,7 +2686,7 @@
 //   const fetchOrders = useCallback(async () => {
 //     try {
 //       setState(prev => ({ ...prev, loading: true, error: null }));
-//       const res = await axios.get("http://localhost:8080/order");
+//       const res = await axios.get("https://burka-2-1.onrender.com/order");
 //       setState(prev => ({
 //         ...prev,
 //         orders: res.data.orders,
@@ -2707,7 +2707,7 @@
 //   const fetchPaymentDetails = async (orderId) => {
 //     try {
 //       setState(prev => ({ ...prev, paymentDetailsLoading: true }));
-//       const res = await axios.get(`http://localhost:8080/payments/${orderId}`);
+//       const res = await axios.get(`https://burka-2-1.onrender.com/payments/${orderId}`);
 //       setState(prev => ({
 //         ...prev,
 //         paymentDetails: res.data.payments || [],
@@ -2751,7 +2751,7 @@
 //         return;
 //       }
 
-//       await axios.put(`http://localhost:8080/order/${orderId}`, { status: newStatus });
+//       await axios.put(`https://burka-2-1.onrender.com/order/${orderId}`, { status: newStatus });
 //       await fetchOrders(); // Wait for refresh
       
 //       if (state.selectedOrder?._id === orderId) {
@@ -3233,7 +3233,7 @@ const Orders = () => {
   const fetchOrders = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
-      const res = await axios.get("http://localhost:8080/order");
+      const res = await axios.get("https://burka-2-1.onrender.com/order");
       setState(prev => ({
         ...prev,
         orders: res.data.orders,
@@ -3254,7 +3254,7 @@ const Orders = () => {
   const fetchPaymentDetails = async (orderId) => {
     try {
       setState(prev => ({ ...prev, paymentDetailsLoading: true }));
-      const res = await axios.get(`http://localhost:8080/payments/${orderId}`);
+      const res = await axios.get(`https://burka-2-1.onrender.com/payments/${orderId}`);
       setState(prev => ({
         ...prev,
         paymentDetails: res.data.payments || [],
@@ -3298,7 +3298,7 @@ const Orders = () => {
         return;
       }
 
-      await axios.put(`http://localhost:8080/order/${orderId}`, { status: newStatus });
+      await axios.put(`https://burka-2-1.onrender.com/order/${orderId}`, { status: newStatus });
       await fetchOrders(); // Wait for refresh
       
       if (state.selectedOrder?._id === orderId) {

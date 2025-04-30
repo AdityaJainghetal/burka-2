@@ -27,7 +27,7 @@
         
 //         try {
 //             if (usertype === "admin") {
-//                 const response = await axios.post("http://localhost:8080/admin/adminlogin", { 
+//                 const response = await axios.post("https://burka-2-1.onrender.com/admin/adminlogin", { 
 //                     userid: userid, 
 //                     password: password 
 //                 });
@@ -38,7 +38,7 @@
 //                     onLogin();
 //                 }
 //             } else if (usertype === "user") {
-//                 const response = await axios.post("http://localhost:8080/user/login", { 
+//                 const response = await axios.post("https://burka-2-1.onrender.com/user/login", { 
 //                     email: userid, 
 //                     password: password 
 //                 });
@@ -212,7 +212,7 @@ const AdminLogin = ({ onLogin }) => {
         
         try {
             if (usertype === "admin") {
-                const response = await axios.post("http://localhost:8080/admin/adminlogin", { 
+                const response = await axios.post("https://burka-2-1.onrender.com/admin/adminlogin", { 
                     userid: userid, 
                     password: password 
                 });
@@ -223,7 +223,7 @@ const AdminLogin = ({ onLogin }) => {
                     onLogin();
                 }
             } else if (usertype === "user") {
-                const response = await axios.post("http://localhost:8080/user/login", { 
+                const response = await axios.post("https://burka-2-1.onrender.com/user/login", { 
                     email: userid, 
                     password: password 
                 });
