@@ -1879,17 +1879,7 @@ function AppContent({ onLogout }) {
                 <h1 className="text-xl font-bold text-primary-600">ProductScan</h1>
               </div>
 
-              <div className="hidden md:flex items-center space-x-6">
-                
-
-                <button
-                  onClick={onLogout}
-                  className="text-gray-500 hover:text-gray-700 flex items-center"
-                >
-                  <LogOut size={20} className="mr-1" />
-                  <span className="text-sm hidden lg:inline">Logout</span>
-                </button>
-              </div>
+          
 
               <div className="md:hidden flex items-center">
                 <NavLink
@@ -1908,6 +1898,34 @@ function AppContent({ onLogout }) {
                   )}
                 </NavLink>
               </div>
+
+              <div className="hidden md:flex items-center space-x-6">
+                
+
+                <button
+                  onClick={onLogout}
+                  className="text-gray-500 hover:text-gray-700 flex items-center"
+                >
+                  <LogOut size={20} className="mr-1" />
+                  <span className="text-sm hidden lg:inline">Logout</span>
+                </button>
+             
+              <NavLink
+                  to="/cart"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-primary-600 relative"
+                      : "text-gray-500 hover:text-gray-700 relative"
+                  }
+                >
+                  <ShoppingCart size={24} />
+                  {cart.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                      {cart.length}
+                    </span>
+                  )}
+                </NavLink>
+                </div>
             </div>
           </div>
 
