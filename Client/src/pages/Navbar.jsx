@@ -240,6 +240,15 @@ const Sidebar = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    // Clear any other user-related data from localStorage if needed
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userData');
+    localStorage.clear()
+    setIsAuthenticated(false);
+  };
+
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   const toggleDropdown = (item) => {
@@ -281,6 +290,9 @@ const Sidebar = () => {
     // { to: "/dilveredOrder", label: "DilveredOrder", icon: QrCode },
     { to: "/shippedorderdisplay", label: "Shippedorderdisplay", icon: QrCode },
     { to: "/cancelorder", label: "cancelorder", icon: QrCode },
+
+
+
 
 
 
