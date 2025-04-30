@@ -107,7 +107,7 @@ const DeliveredOrders = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-6xl  ms-auto py-8">
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Delivered Orders</h2>
