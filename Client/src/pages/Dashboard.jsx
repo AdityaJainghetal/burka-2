@@ -375,7 +375,7 @@ const Dashboard = () => {
       onClick: () => navigate("/orders")
     },
     { 
-      title: "Dispatched & Delivered", 
+      title: "Dispatched", 
       value: "112", 
       info: "More info", 
       color: "bg-purple-100 text-purple-800",
