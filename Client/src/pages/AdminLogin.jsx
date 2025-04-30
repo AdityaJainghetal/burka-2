@@ -263,7 +263,7 @@ const AdminLogin = ({ onLogin }) => {
             <div className="w-full max-w-md">
                 <div className="bg-white rounded-xl shadow-2xl p-8 sm:p-10">
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Welcome Back</h1>
+                        <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Welcome To Admin panel</h1>
                         <p className="text-gray-600">Please sign in to your account</p>
                     </div>
                     

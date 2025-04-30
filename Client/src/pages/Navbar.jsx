@@ -481,30 +481,69 @@ const Sidebar = () => {
       label: "Dashboard",
       icon: BarChart2,
     },
+
     {
-      label: "Products",
-      icon: Package,
-      subItems: [
-        { to: "/", label: "All Products", icon: Home },
-        { to: "/create", label: "Add Product", icon: PlusCircle },
-      ],
-    },
-    {
-      label: "Categories",
+      label: "Master",
       icon: Layers,
       subItems: [
         { to: "/categories", label: "All Categories", icon: List },
         { to: "/subcategories", label: "Sub-Categories", icon: Grid },
+        { to: "/create", label: "Add Product", icon: PlusCircle },
       ],
     },
-    { to: "/scan", label: "Scan QR", icon: QrCode },
-    { to: "/orders", label: "Orders", icon: ClipboardList },
-    { to: "/todayorder", label: "Reports", icon: ClipboardList },
+
+    {
+      label: "View Products",
+      icon: Package,
+      subItems: [
+        { to: "/", label: "All Products", icon: Home },
+       
+      ],
+    },
+
+
+    
+    {
+      label: "Orders",
+      icon: Package,
+      subItems: [
+        { to: "/todayorder", label: "Today Order", icon: ClipboardList },
+        { to: "/orders", label: "Total Orders", icon: ClipboardList },
+        { to: "/deliverorder", label: "Dispatch Order", icon: Truck },
+        { to: "/shippedorderdisplay", label: "Shipped Orders", icon: QrCode },
+        { to: "/cancelorder", label: "Cancel Order", icon: QrCode },
+      ],
+    },
+
+
+    {
+      label: "Stock-in",
+      icon: Package,
+      subItems: [
+        { to: "/purchaseScanQRCode", label: "Purchase Scan", icon: QrCode },
+   
+      ],
+    },
+
+
+
+    {
+      label: "Billing",
+      icon: Package,
+      subItems: [
+        { to: "/scan", label: "Scan QR", icon: QrCode },
+        { to: "/orders", label: "All Invoices", icon: ClipboardList },
+   
+      ],
+    },
+
+
+
+   
+
     { to: "/registration", label: "Registration", icon: UserPlus },
-    { to: "/purchaseScanQRCode", label: "Purchase Scan", icon: QrCode },
-    { to: "/deliverorder", label: "Deliver Order", icon: Truck },
-    { to: "/shippedorderdisplay", label: "Shipped Orders", icon: QrCode },
-    { to: "/cancelorder", label: "Cancel Order", icon: QrCode },
+    
+  
   ];
 
   return (

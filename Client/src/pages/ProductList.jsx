@@ -2183,7 +2183,7 @@ const ProductList = () => {
   }
 
   return (
-    <div className="bg-white shadow rounded-lg mt-2 md:ml-32 ">
+    <div className="bg-white shadow rounded-lg max-w-5xl  ms-auto py-8 ">
       {/* Print Quantity Dialog */}
       {showPrintDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
