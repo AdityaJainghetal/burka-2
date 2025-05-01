@@ -320,9 +320,10 @@ const CancelledOrders = () => {
     },
     {
       name: 'Customer',
-      selector: row => row.customerDetails?.name || 'N/A',
+      selector: (row) => row.orderItems[0]?.discountName?.firmName || 'N/A',
       sortable: true,
-      cell: row => <span className="font-medium">{row.customerDetails?.name || 'N/A'}</span>,
+      cell: row => <span className="font-medium text-gray-800">{row.orderItems[0]?.discountName?.firmName || 'N/A'}</span>,
+      width: '180px'
     },
     {
       name: 'Order Date',
@@ -438,7 +439,7 @@ const CancelledOrders = () => {
             </button>
           </div>
         </div>
-
+              {console.log(filteredOrders,"dsfsf")}
         <DataTable
           columns={columns}
           data={filteredOrders}

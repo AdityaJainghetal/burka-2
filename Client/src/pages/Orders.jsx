@@ -3386,7 +3386,7 @@ const Orders = () => {
     },
     {
       name: "Customer",
-      selector: (row) => row.user?.name || "Guest",
+      selector: (row) => row.orderItems[0].discountName?.firmName || "Guest",
       sortable: true,
       width: "150px",
     },
@@ -3561,6 +3561,7 @@ const Orders = () => {
           }
         />
       </div>
+      {console.log(state)}
       {/* Order Details Modal */}
       {state.selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -3615,7 +3616,9 @@ const Orders = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div className="border rounded-lg p-4">
                   <h4 className="font-bold mb-2">Customer Details</h4>
-                  <p><span className="font-semibold">Name:</span> {state.selectedOrder.user?.name || "Guest"}</p>
+                  {console.log(state.filteredOrders.discountName)}
+                  <p><span className="font-semibold">Name:</span> {state.selectedOrder.discountName?.
+firmName || "Guest"}</p>
                   <p><span className="font-semibold">Phone:</span> {state.selectedOrder.user?.phone || "N/A"}</p>
                   <p><span className="font-semibold">Email:</span> {state.selectedOrder.user?.email || "N/A"}</p>
                 </div>

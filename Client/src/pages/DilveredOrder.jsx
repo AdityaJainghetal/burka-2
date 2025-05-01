@@ -608,9 +608,10 @@ const DeliveredOrders = () => {
     },
     {
       name: 'Customer',
-      selector: row => row.deliveryDetails?.receivedBy || 'N/A',
+      selector: (row) => row.orderItems[0]?.discountName?.firmName || 'N/A',
       sortable: true,
-      cell: row => <span className="font-medium">{row.deliveryDetails?.receivedBy || 'N/A'}</span>,
+      cell: row => <span className="font-medium text-gray-800">{row.orderItems[0]?.discountName?.firmName || 'N/A'}</span>,
+      width: '180px'
     },
     {
       name: 'Delivery Date',

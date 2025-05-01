@@ -19,6 +19,9 @@ const paymentSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  chequeNumber :{
+    type: Number,
+  },
   remark: {
     type: String,
     default: '',

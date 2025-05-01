@@ -3,7 +3,7 @@ const Order = require('../models/orderModel');
 
 // Create a new payment
 const createPayment = async (req, res) => {
-  const { orderId, amount, paymentMode, receivingDate, remark } = req.body;
+  const { orderId, amount, paymentMode, receivingDate, remark ,chequeNumber} = req.body;
 
   try {
     // Validate required fields
@@ -44,6 +44,7 @@ const createPayment = async (req, res) => {
       orderId,
       amount,
       paymentMode,
+      chequeNumber,
       receivingDate: receivingDate || new Date(),
       remark: remark || '',
       status: 'Completed',
