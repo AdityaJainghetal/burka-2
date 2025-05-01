@@ -3564,77 +3564,91 @@ const Orders = () => {
       {console.log(state)}
       {/* Order Details Modal */}
       {state.selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6" ref={printRef}>
-              {/* Print Header - only visible when printing */}
-              <div className="print-header hidden mb-8">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h1 className="text-2xl font-bold">Company Name</h1>
-                    <p className="text-gray-600">123 Business Street, City</p>
-                    <p className="text-gray-600">Phone: (123) 456-7890</p>
-                  </div>
-                  <div className="print-logo">
-                    {/* Replace with your logo image */}
-                    <div className="bg-gray-200 w-32 h-32 flex items-center justify-center">
-                      <span className="text-gray-500">Company Logo</span>
-                    </div>
-                  </div>
-                </div>
-                <hr className="my-4 border-t-2 border-gray-300" />
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6" ref={printRef}>
+          {/* Print Header - only visible when printing */}
+          <div className="print-header hidden mb-8">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-bold">Company Name</h1>
+                <p className="text-gray-600">123 Business Street, City</p>
+                <p className="text-gray-600">Phone: (123) 456-7890</p>
               </div>
-
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-bold">Order #{state.selectedOrder._id.slice(-6).toUpperCase()}</h3>
-                  <p className="text-sm text-gray-500">
-                    Date: {new Date(state.selectedOrder.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold">Status: 
-                    <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${state.selectedOrder.status === "delivered" ? "bg-green-100 text-green-800" : 
-                        state.selectedOrder.status === "processing" || state.selectedOrder.status === "shipped" ? "bg-blue-100 text-blue-800" : 
-                        state.selectedOrder.status === "cancelled" ? "bg-red-100 text-red-800" : 
-                        "bg-yellow-100 text-yellow-800"}`}>
-                      {(state.selectedOrder.status || "pending").toUpperCase()}
-                    </span>
-                  </p>
-                  <p className="font-semibold">Payment: 
-                    <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${state.selectedOrder.paymentStatus === "paid" ? "bg-green-100 text-green-800" : 
-                        state.selectedOrder.paymentStatus === "partially_paid" ? "bg-blue-100 text-blue-800" : 
-                        "bg-yellow-100 text-yellow-800"}`}>
-                      {(state.selectedOrder.paymentStatus || "pending").toUpperCase()}
-                    </span>
-                  </p>
+              <div className="print-logo">
+                {/* Replace with your logo image */}
+                <div className="bg-gray-200 w-32 h-32 flex items-center justify-center">
+                  <span className="text-gray-500">Company Logo</span>
                 </div>
               </div>
+            </div>
+            <hr className="my-4 border-t-2 border-gray-300" />
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="border rounded-lg p-4">
-                  <h4 className="font-bold mb-2">Customer Details</h4>
-                  {console.log(state.filteredOrders.discountName)}
-                  <p><span className="font-semibold">Name:</span> {state.selectedOrder.discountName?.
-firmName || "Guest"}</p>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-lg font-bold">Order #{state.selectedOrder._id.slice(-6).toUpperCase()}</h3>
+              <p className="text-sm text-gray-500">
+                Date: {new Date(state.selectedOrder.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="font-semibold">Status: 
+                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                  ${state.selectedOrder.status === "delivered" ? "bg-green-100 text-green-800" : 
+                    state.selectedOrder.status === "processing" || state.selectedOrder.status === "shipped" ? "bg-blue-100 text-blue-800" : 
+                    state.selectedOrder.status === "cancelled" ? "bg-red-100 text-red-800" : 
+                    "bg-yellow-100 text-yellow-800"}`}>
+                  {(state.selectedOrder.status || "pending").toUpperCase()}
+                </span>
+              </p>
+              <p className="font-semibold">Payment: 
+                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                  ${state.selectedOrder.paymentStatus === "paid" ? "bg-green-100 text-green-800" : 
+                    state.selectedOrder.paymentStatus === "partially_paid" ? "bg-blue-100 text-blue-800" : 
+                    "bg-yellow-100 text-yellow-800"}`}>
+                  {(state.selectedOrder.paymentStatus || "pending").toUpperCase()}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="border rounded-lg p-4">
+              <h4 className="font-bold mb-2">Customer Details</h4>
+              {state.selectedOrder.orderItems[0]?.discountName ? (
+                <>
+                  <p><span className="font-semibold">Firm Name:</span> {state.selectedOrder.orderItems[0].discountName.firmName}</p>
+                  <p><span className="font-semibold">Contact Person:</span> {state.selectedOrder.orderItems[0].discountName.contactName}</p>
+                  <p><span className="font-semibold">Mobile 1:</span> {state.selectedOrder.orderItems[0].discountName.mobile1}</p>
+                  <p><span className="font-semibold">Mobile 2:</span> {state.selectedOrder.orderItems[0].discountName.mobile2 || "N/A"}</p>
+                  <p><span className="font-semibold">WhatsApp:</span> {state.selectedOrder.orderItems[0].discountName.whatsapp || "N/A"}</p>
+                  <p><span className="font-semibold">Email:</span> {state.selectedOrder.orderItems[0].discountName.email || "N/A"}</p>
+                  <p><span className="font-semibold">Address:</span> {state.selectedOrder.orderItems[0].discountName.address}, {state.selectedOrder.orderItems[0].discountName.city}, {state.selectedOrder.orderItems[0].discountName.state}</p>
+                </>
+              ) : (
+                <>
+                  <p><span className="font-semibold">Name:</span> Guest</p>
                   <p><span className="font-semibold">Phone:</span> {state.selectedOrder.user?.phone || "N/A"}</p>
                   <p><span className="font-semibold">Email:</span> {state.selectedOrder.user?.email || "N/A"}</p>
-                </div>
+                </>
+              )}
+            </div>
 
-                <div className="border rounded-lg p-4">
-                  <h4 className="font-bold mb-2">Order Summary</h4>
-                  <p><span className="font-semibold">Total:</span> ₹{state.selectedOrder.totalPrice}</p>
-                  {state.selectedOrder.totalPriceAfterDiscount && (
-                    <p><span className="font-semibold">After Discount:</span> ₹{state.selectedOrder.totalPriceAfterDiscount}</p>
-                  )}
-                  <p><span className="font-semibold">Paid Amount:</span> ₹{state.selectedOrder.paidAmount || 0}</p>
-                  <p><span className="font-semibold">Due Amount:</span> ₹{state.selectedOrder.dueAmount || 
-                    (state.selectedOrder.totalPriceAfterDiscount ?? state.selectedOrder.totalPrice) - (state.selectedOrder.paidAmount || 0)}</p>
-                </div>
-              </div>
+            <div className="border rounded-lg p-4">
+              <h4 className="font-bold mb-2">Order Summary</h4>
+              <p><span className="font-semibold">Total:</span> ₹{state.selectedOrder.totalPrice}</p>
+              {state.selectedOrder.totalPriceAfterDiscount && (
+                <p><span className="font-semibold">After Discount:</span> ₹{state.selectedOrder.totalPriceAfterDiscount}</p>
+              )}
+              <p><span className="font-semibold">Paid Amount:</span> ₹{state.selectedOrder.paidAmount || 0}</p>
+              <p><span className="font-semibold">Due Amount:</span> ₹{state.selectedOrder.dueAmount || 
+                (state.selectedOrder.totalPriceAfterDiscount ?? state.selectedOrder.totalPrice) - (state.selectedOrder.paidAmount || 0)}</p>
+            </div>
+          </div>
 
+
+            
               <div className="mb-6">
                 <h4 className="font-bold mb-2">Order Items</h4>
                 <div className="overflow-x-auto">
