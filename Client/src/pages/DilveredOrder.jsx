@@ -14,7 +14,7 @@
 //   const fetchDeliveredOrders = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await axios.get('http://localhost:8080/order/status/delivered');
+//       const response = await axios.get('https://burka-2-2.onrender.com/order/status/delivered');
 //       // Filter to ensure only delivered orders are shown (though API should already do this)
 //       const deliveredOrders = response.data.orders || [];
 //       setOrders(deliveredOrders);
@@ -232,7 +232,7 @@
 //   const fetchDeliveredOrders = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await axios.get('http://localhost:8080/order/status/delivered');
+//       const response = await axios.get('https://burka-2-2.onrender.com/order/status/delivered');
 //       const deliveredOrders = response.data.orders || [];
 //       setOrders(deliveredOrders);
 //       setFilteredOrders(deliveredOrders);
@@ -525,7 +525,7 @@ const DeliveredOrders = () => {
   const fetchDeliveredOrders = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8080/order/status/delivered');
+      const response = await axios.get('https://burka-2-2.onrender.com/order/status/delivered');
       const deliveredOrders = response.data.orders || [];
       setOrders(deliveredOrders);
       setFilteredOrders(deliveredOrders);

@@ -13,7 +13,7 @@
 //   useEffect(() => {
 //     const fetchOrderAndPayments = async () => {
 //       try {
-//         const orderRes = await axios.get(`http://localhost:8080/order/${id}`);
+//         const orderRes = await axios.get(`https://burka-2-2.onrender.com/order/${id}`);
 //         setOrder(orderRes.data.order);
         
 //         // Extract customer from the first order item's address
@@ -21,7 +21,7 @@
 //           setCustomer(orderRes.data.order.orderItems[0].address);
 //         }
 
-//         const paymentsRes = await axios.get(`http://localhost:8080/payments/${id}`);
+//         const paymentsRes = await axios.get(`https://burka-2-2.onrender.com/payments/${id}`);
 //         setPayments(paymentsRes.data.payments || []);
 
 //         setLoading(false);
@@ -37,7 +37,7 @@
 //   const handlePaymentSuccess = async (newPayment) => {
 //     try {
 //       setPayments([...payments, newPayment]);
-//       const orderRes = await axios.get(`http://localhost:8080/order/${id}`);
+//       const orderRes = await axios.get(`https://burka-2-2.onrender.com/order/${id}`);
 //       setOrder(orderRes.data.order);
 //     } catch (err) {
 //       console.error('Error updating order after payment:', err);
@@ -230,7 +230,7 @@ const AllPayment = () => {
   useEffect(() => {
     const fetchOrderAndPayments = async () => {
       try {
-        const orderRes = await axios.get(`http://localhost:8080/order/${id}`);
+        const orderRes = await axios.get(`https://burka-2-2.onrender.com/order/${id}`);
         setOrder(orderRes.data.order);
         
         // Extract customer from the first order item's address
@@ -238,7 +238,7 @@ const AllPayment = () => {
           setCustomer(orderRes.data.order.orderItems[0].address);
         }
 
-        const paymentsRes = await axios.get(`http://localhost:8080/payments/${id}`);
+        const paymentsRes = await axios.get(`https://burka-2-2.onrender.com/payments/${id}`);
         setPayments(paymentsRes.data.payments || []);
 
         setLoading(false);
@@ -254,7 +254,7 @@ const AllPayment = () => {
   const handlePaymentSuccess = async (newPayment) => {
     try {
       setPayments([...payments, newPayment]);
-      const orderRes = await axios.get(`http://localhost:8080/order/${id}`);
+      const orderRes = await axios.get(`https://burka-2-2.onrender.com/order/${id}`);
       setOrder(orderRes.data.order);
     } catch (err) {
       console.error('Error updating order after payment:', err);

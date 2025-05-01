@@ -39,7 +39,7 @@ const CartPage = () => {
     const fetchVendors = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("http://localhost:8080/user");
+        const res = await axios.get("https://burka-2-2.onrender.com/user");
         setVendors(res.data);
       } catch {
         setError("Failed to load vendors.");
@@ -101,7 +101,7 @@ const CartPage = () => {
   const handleDelete = async id => {
     setItemsBeingDeleted(prev => ({ ...prev, [id]: true }));
     try {
-      await axios.delete(`http://localhost:8080/cart/remove/${id}`);
+      await axios.delete(`https://burka-2-2.onrender.com/cart/remove/${id}`);
       await fetchCart();
     } catch {
       setError("Failed to delete.");
@@ -134,7 +134,7 @@ const CartPage = () => {
     };
 
     try {
-      const res = await axios.post("http://localhost:8080/order", payload);
+      const res = await axios.post("https://burka-2-2.onrender.com/order", payload);
 
       if (res.data.success) {
         setPaymentSuccess(true);
@@ -142,7 +142,7 @@ const CartPage = () => {
         await Promise.all(
           cart.map(item =>
             axios.delete(
-              `http://localhost:8080/cart/remove/${item.product._id}`
+              `https://burka-2-2.onrender.com/cart/remove/${item.product._id}`
             )
           )
         );
@@ -481,7 +481,7 @@ export default CartPage;
 //     const fetchVendors = async () => {
 //       setLoading(true);
 //       try {
-//         const res = await axios.get("http://localhost:8080/user");
+//         const res = await axios.get("https://burka-2-2.onrender.com/user");
 //         setVendors(res.data);
 //       } catch (err) {
 //         setError("Failed to load vendors.");
@@ -558,7 +558,7 @@ export default CartPage;
 //   const handleDelete = async id => {
 //     setItemsBeingDeleted(prev => ({ ...prev, [id]: true }));
 //     try {
-//       await axios.delete(`http://localhost:8080/cart/remove/${id}`);
+//       await axios.delete(`https://burka-2-2.onrender.com/cart/remove/${id}`);
 //       await fetchCart();
 //     } catch (err) {
 //       setError("Failed to delete item.");
@@ -599,7 +599,7 @@ export default CartPage;
 
 //     try {
 //       const res = await axios.post(
-//         "http://localhost:8080/order",
+//         "https://burka-2-2.onrender.com/order",
 //         payload
 //       );
 
@@ -609,7 +609,7 @@ export default CartPage;
 //         // On success: clear cart
 //         await Promise.all(
 //           cart.map(item =>
-//             axios.delete(`http://localhost:8080/cart/remove/${item._id}`)
+//             axios.delete(`https://burka-2-2.onrender.com/cart/remove/${item._id}`)
 //           )
 //         );
 //         await fetchCart();

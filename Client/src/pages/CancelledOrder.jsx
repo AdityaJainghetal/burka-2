@@ -14,7 +14,7 @@
 //   const fetchCancelledOrders = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await axios.get('http://localhost:8080/order/status/cancelled');
+//       const response = await axios.get('https://burka-2-2.onrender.com/order/status/cancelled');
 //       const cancelledOrders = response.data.orders || [];
 //       setOrders(cancelledOrders);
 //       toast.success(`Loaded ${cancelledOrders.length} cancelled orders`);
@@ -233,7 +233,7 @@ const CancelledOrders = () => {
   const fetchCancelledOrders = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:8080/order/status/cancelled');
+      const response = await axios.get('https://burka-2-2.onrender.com/order/status/cancelled');
       const cancelledOrders = response.data.orders || [];
       setOrders(cancelledOrders);
       setFilteredOrders(cancelledOrders);
