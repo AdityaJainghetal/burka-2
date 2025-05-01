@@ -10,9 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-build-classic": "^41.4.2",
+    "@ckeditor/ckeditor5-react": "^9.5.0",
     "@reduxjs/toolkit": "^2.6.1",
     "@zxing/library": "^0.20.0",
     "axios": "^1.6.2",
+    "file-saver": "^2.0.5",
     "formik": "^2.4.6",
     "html5-qrcode": "^2.3.8",
     "jspdf": "^3.0.1",
@@ -33,6 +36,7 @@
     "react-toastify": "^11.0.5",
     "styled-components": "^6.1.17",
     "tailwindcss-animate": "^1.0.7",
+    "xlsx": "^0.18.5",
     "yup": "^1.6.1"
   },
   "devDependencies": {

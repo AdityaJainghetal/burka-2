@@ -27,7 +27,7 @@
         
 //         try {
 //             if (usertype === "admin") {
-//                 const response = await axios.post("https://burka-2-1.onrender.com/admin/adminlogin", { 
+//                 const response = await axios.post("http://localhost:8080/admin/adminlogin", { 
 //                     userid: userid, 
 //                     password: password 
 //                 });
@@ -38,7 +38,7 @@
 //                     onLogin();
 //                 }
 //             } else if (usertype === "user") {
-//                 const response = await axios.post("https://burka-2-1.onrender.com/user/login", { 
+//                 const response = await axios.post("http://localhost:8080/user/login", { 
 //                     email: userid, 
 //                     password: password 
 //                 });
@@ -212,7 +212,7 @@
         
 //         try {
 //             if (usertype === "admin") {
-//                 const response = await axios.post("https://burka-2-1.onrender.com/admin/adminlogin", { 
+//                 const response = await axios.post("http://localhost:8080/admin/adminlogin", { 
 //                     userid: userid, 
 //                     password: password 
 //                 });
@@ -223,7 +223,7 @@
 //                     onLogin();
 //                 }
 //             } else if (usertype === "user") {
-//                 const response = await axios.post("https://burka-2-1.onrender.com/user/login", { 
+//                 const response = await axios.post("http://localhost:8080/user/login", { 
 //                     email: userid, 
 //                     password: password 
 //                 });
@@ -387,7 +387,7 @@ const AdminLogin = ({ onLogin }) => {
         setIsLoading(true);
         
         try {
-            const response = await axios.post("https://burka-2-1.onrender.com/admin/adminlogin", { 
+            const response = await axios.post("http://localhost:8080/admin/adminlogin", { 
                 userid: userid, 
                 password: password 
             });

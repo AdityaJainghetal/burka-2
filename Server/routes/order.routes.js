@@ -36,7 +36,8 @@ const {
   shipOrder,
   getDeliveredOrders,
   getShippedOrders,
-  getCancelledOrders
+  getCancelledOrders,
+  getOrdersWithDueAmount
 
   
 } = require('../controllers/order.controller');
@@ -71,5 +72,6 @@ router.get('/status/shipped', getShippedOrders);
 
 
 router.get('/status/cancelled', getCancelledOrders);
+router.get('/dueAmount/:hasDueAmount',  getOrdersWithDueAmount);
 
 module.exports = router;

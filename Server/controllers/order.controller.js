@@ -292,14 +292,14 @@ const createOrder = async (req, res) => {
     const order = new Order({
       orderItems,
       totalPrice,
-      vendorName: discountName,
+      vendor: discountName,
       totalPriceAfterDiscount,
       discountName,
       dueAmount: totalPriceAfterDiscount,
       paymentStatus: 'pending',
       status: 'pending', // Initialize status as pending
     });
-
+    console.log(order,)
     const savedOrder = await order.save();
 
     res.status(201).json({
@@ -573,6 +573,21 @@ const getCancelledOrders = async (req, res) => {
   }
 };
 
+const getOrdersWithDueAmount = async (req, res) => {
+  const hasDueAmount = req.params.hasDueAmount === 'true';
+  const query = hasDueAmount ? { dueAmount: { $gt: 0 } } : {};
+  
+  const orders = await Order.find(query).sort({ createdAt: -1 });
+  
+  res.json({
+    count: orders.length,
+    orders: orders.map(order => ({
+      ...order._doc,
+      formattedId: `ORD-${order._id.toString().substring(0, 8).toUpperCase()}`
+    }))
+  });
+};
+
 
 
 
@@ -587,6 +602,7 @@ module.exports = {
   CancelledOrder,
   getDeliveredOrders,
   getShippedOrders,
-  getCancelledOrders
+  getCancelledOrders,
+  getOrdersWithDueAmount
 
 };

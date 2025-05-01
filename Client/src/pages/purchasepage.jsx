@@ -42,7 +42,7 @@ const PurchasePage = () => {
     const fetchVendors = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("https://burka-2-1.onrender.com/user");
+        const res = await axios.get("http://localhost:8080/user");
         setVendors(res.data);
       } catch {
         setError("Failed to load vendors.");
@@ -108,7 +108,7 @@ const PurchasePage = () => {
   const handleDelete = async id => {
     setItemsBeingDeleted(prev => ({ ...prev, [id]: true }));
     try {
-      await axios.delete(`https://burka-2-1.onrender.com/cart/remove/${id}`);
+      await axios.delete(`http://localhost:8080/cart/remove/${id}`);
       await fetchCart();
     } catch {
       setError("Failed to delete.");
@@ -148,7 +148,7 @@ const PurchasePage = () => {
     console.log(payload, "PAYLOAd")
     try {
       const res = await axios.post(
-        "https://burka-2-1.onrender.com/order",
+        "http://localhost:8080/order",
         payload
       );
 
@@ -159,7 +159,7 @@ const PurchasePage = () => {
         await Promise.all(
           cart.map(item =>
             axios.delete(
-              `https://burka-2-1.onrender.com/cart/remove/${item.product._id}`
+              `http://localhost:8080/cart/remove/${item.product._id}`
             )
           )
         );

@@ -532,7 +532,7 @@ const Sidebar = () => {
       icon: Package,
       subItems: [
         { to: "/scan", label: "Scan QR", icon: QrCode },
-        { to: "/orders", label: "All Invoices", icon: ClipboardList },
+        { to: "/invoice", label: "All Invoices", icon: ClipboardList },
    
       ],
     },

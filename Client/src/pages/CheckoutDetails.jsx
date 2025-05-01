@@ -84,7 +84,7 @@ const CheckOutDetails = () => {
 
     try {
       const result = await axios.post(
-        'https://burka-2-1.onrender.com/api/user/order/checkout',
+        'http://localhost:8080/api/user/order/checkout',
         { amount: cartTotal },
         config
       );
@@ -109,7 +109,7 @@ const CheckOutDetails = () => {
             razorpayOrderId: response.razorpay_order_id,
           };
 
-          await axios.post("https://burka-2-1.onrender.com/api/user/order/paymentVerification", data, config);
+          await axios.post("http://localhost:8080/api/user/order/paymentVerification", data, config);
 
           dispatch(createOrder({
             totalPrice: cartTotal,

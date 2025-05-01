@@ -1745,6 +1745,8 @@ import CancelOrderModal from "./pages/CancelOrder";
 import DeliveredOrder from "./pages/DilveredOrder";
 import ShippedOrdersDisplay from "./pages/ShippedOrdersDiplsay";
 import CancelledOrders from "./pages/CancelledOrder";
+import Invoice from "./pages/Invoice";
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -1842,7 +1844,7 @@ function AppContent({ onLogout }) {
         icon: Package,
         subItems: [
           { to: "/scan", label: "Scan QR", icon: QrCode },
-          { to: "/orders", label: "All Invoices", icon: ClipboardList },
+          { to: "/invoice", label: "All Invoices", icon: ClipboardList },
      
         ],
       },
@@ -2020,7 +2022,8 @@ function AppContent({ onLogout }) {
         </header>
 
         {/* Main Content Area with Fixed Width and Scroll */}
-        <main className="flex-1 max-w-full w-full py-6 px-2 sm:px-4 overflow-hidden">
+        <main className="flex-1 max-w-full w-full py-6 px-2 sm:px-4 overflow-hidden md:ml-[10vw]">
+
           <div className="w-full max-w-7xl mx-auto h-full overflow-auto px-4 py-4 bg-white rounded-lg shadow">
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -2043,6 +2046,8 @@ function AppContent({ onLogout }) {
               <Route path="/deliverorder" element={<DeliveredOrder />} />
               <Route path="/shippedorderdisplay" element={<ShippedOrdersDisplay />} />
               <Route path="/cancelorder" element={<CancelledOrders />} />
+              <Route path="/invoice" element={<Invoice/>} />
+
             </Routes>
           </div>
         </main>
