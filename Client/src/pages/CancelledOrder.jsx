@@ -371,20 +371,7 @@ const CancelledOrders = () => {
         </span>
       ),
     },
-    {
-      name: 'Action',
-      cell: row => (
-        <button
-          onClick={() => viewOrderDetails(row._id)}
-          className="px-3 py-1 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
-        >
-          View Details
-        </button>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-    },
+  
   ];
 
   const subHeaderComponent = (

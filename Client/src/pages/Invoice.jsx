@@ -318,29 +318,7 @@ const Invoice = () => {
           {status.toUpperCase()}
         </span>
       ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <div className="flex space-x-2">
-          <button
-            onClick={() => viewOrderDetails(record._id)}
-            className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-          >
-            View
-          </button>
-          {record.dueAmount > 0 && (
-            <button
-              onClick={() => markAsPaid(record._id)}
-              className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
-            >
-              Mark Paid
-            </button>
-          )}
-        </div>
-      ),
-    },
+    }
   ];
 
   return (

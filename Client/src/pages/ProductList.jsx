@@ -2333,13 +2333,13 @@ const ProductList = () => {
                         <ShoppingCart size={16} className="text-primary-600" />
                       )}
                     </button>
-                    <button
+                    {/* <button
                       className="p-1.5 rounded-full bg-yellow-50 hover:bg-yellow-100"
                       onClick={Quantity}
                       title="Quantity"
                     >
                       <ListOrdered size={16} className="text-yellow-600" />
-                    </button>
+                    </button> */}
                     <button
                       className="p-1.5 rounded-full bg-green-50 hover:bg-green-100"
                       onClick={() => handlePrintProduct(product)}
