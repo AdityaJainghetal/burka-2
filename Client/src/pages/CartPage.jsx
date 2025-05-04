@@ -21,7 +21,6 @@ const CartPage = () => {
   const [vendors, setVendors] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState("");
   const [discount, setDiscount] = useState(0);
-
   const [modalOpen, setModalOpen] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -61,7 +60,7 @@ const CartPage = () => {
     const subtotal = cart.reduce(
       (sum, item) =>
         item.product
-          ? sum + item.product?.price * (editedQuantities[item._id] || 1)
+          ? sum + item.product.price * (editedQuantities[item._id] || 1)
           : sum,
       0
     );
@@ -78,12 +77,12 @@ const CartPage = () => {
 
     const cols = ["Product", "Price", "Qty", "Subtotal"];
     const rows = cart
-      .filter(item => item?.product)
+      .filter(item => item.product)
       .map(item => [
-        item?.product?.name,
-        `₹${item?.product?.price}`,
+        item.product.name,
+        `₹${item.product.price}`,
         editedQuantities[item._id],
-        `₹${(item?.product?.price * editedQuantities[item._id]).toFixed(2)}`
+        `₹${(item.product.price * editedQuantities[item._id]).toFixed(2)}`
       ]);
 
     autoTable(doc, { head: [cols], body: rows, startY: 20 });
@@ -133,31 +132,44 @@ const CartPage = () => {
         .map(item => ({
           productId: item.product._id,
           productName: item.product.name,
-          price: item.product?.price,
+          price: item.product.price,
           quantity: editedQuantities[item._id],
           productImage: item.product.images[0] || "",
           discountName: vendors.find(v => v._id === selectedVendor)?.firmName || "",
           discountPercentage: discount,
           priceAfterDiscount:
-            item.product?.price - (item.product?.price * discount) / 100,
+            item.product.price - (item.product.price * discount) / 100,
         })),
       totalPrice: subtotal,
       totalPriceAfterDiscount: total,
     };
 
     try {
+      // Create order
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/order`, payload);
 
       if (res.data.success) {
         setPaymentSuccess(true);
 
-        await Promise.all(
-          cart
-            .filter(item => item.product)
-            .map(item =>
-              axios.delete(`${import.meta.env.VITE_API_URL}/cart/remove/${item.product._id}`)
-            )
-        );
+        // Remove all cart items
+        const deletionPromises = cart
+          .filter(item => item.product)
+          .map(async item => {
+            try {
+              await axios.delete(`${import.meta.env.VITE_API_URL}/cart/remove/${item.product._id}`);
+            } catch (err) {
+              console.error(`Failed to remove product ${item.product._id}:`, err);
+              throw new Error(`Failed to remove ${item.product.name} from cart.`);
+            }
+          });
+
+        try {
+          await Promise.all(deletionPromises);
+        } catch (err) {
+          setError(err.message || "Some items could not be removed from the cart.");
+        }
+
+        // Refresh cart
         await fetchCart();
 
         setTimeout(() => {
@@ -168,8 +180,8 @@ const CartPage = () => {
         setError("Order creation failed.");
       }
     } catch (err) {
-      console.error(err);
-      setError("Something went wrong.");
+      console.error("Payment error:", err);
+      setError(err.response?.data?.message || "Something went wrong during checkout.");
     } finally {
       setProcessingPayment(false);
     }
@@ -220,25 +232,13 @@ const CartPage = () => {
                     )}
                     <div>
                       <h2 className="font-medium text-lg">{item.product.name}</h2>
-                      <p className="text-gray-500">₹{item.product?.price} each</p>
+                      <p className="text-gray-500">₹{item.product.price} each</p>
                       <p className="text-gray-500">
                         {item.product.stock > 0
                           ? `${item.product.stock} in stock`
                           : "Out of stock"}
                       </p>
                       <div className="flex items-center mt-2">
-                        {/* <button
-                          disabled={editedQuantities[item._id] <= 1}
-                          onClick={() =>
-                            handleQuantityChange(
-                              item._id,
-                              editedQuantities[item._id] - 1
-                            )
-                          }
-                          className="h-8 w-8 border rounded-l hover:bg-gray-50 disabled:opacity-50"
-                        >
-                          <Minus className="h-5 w-5 m-auto" />
-                        </button> */}
                         <input
                           type="number"
                           value={editedQuantities[item._id] || 1}
@@ -253,28 +253,12 @@ const CartPage = () => {
                           max={item.product.stock}
                           className="h-8 w-16 text-center border-t border-b"
                         />
-                        {/* <button
-                          onClick={() =>
-                            handleQuantityChange(
-                              item._id,
-                              editedQuantities[item._id] + 1
-                            )
-                          }
-                          className="h-8 w-8 border rounded-r hover:bg-gray-50"
-                          disabled={
-                            editedQuantities[item._id] >= item.product.stock
-                          }
-                        >
-                          <Plus className="h-5 w-5 m-auto" />
-                        </button> */}
                       </div>
                     </div>
                   </div>
                   <div className="flex flex-col items-end justify-between">
                     <p className="font-medium text-lg">
-                      ₹{(item.product?.price * editedQuantities[item._id]).toFixed(
-                        2
-                      )}
+                      ₹{(item.product.price * editedQuantities[item._id]).toFixed(2)}
                     </p>
                     <button
                       onClick={() => handleDelete(item.product._id)}
@@ -380,7 +364,7 @@ const CartPage = () => {
                       {item.product.name} (x{editedQuantities[item._id]})
                     </span>
                     <span>
-                      ₹{(item.product?.price * editedQuantities[item._id]).toFixed(2)}
+                      ₹{(item.product.price * editedQuantities[item._id]).toFixed(2)}
                     </span>
                   </div>
                 ))}
