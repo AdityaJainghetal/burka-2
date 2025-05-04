@@ -7,7 +7,7 @@ const productSchema = new mongoose.Schema({
   barcode: { type: String, required: true, unique: true },
   description: { type: String },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
-  subCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'SubCategory' },
+  subCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'Subcategory' },
   color: { type: String },
   fabric: { type: String },
   size: [{ type: String }],
