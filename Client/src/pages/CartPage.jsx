@@ -61,7 +61,7 @@ const CartPage = () => {
     const subtotal = cart.reduce(
       (sum, item) =>
         item.product
-          ? sum + item.product.price * (editedQuantities[item._id] || 1)
+          ? sum + item.product?.price * (editedQuantities[item._id] || 1)
           : sum,
       0
     );
@@ -78,12 +78,12 @@ const CartPage = () => {
 
     const cols = ["Product", "Price", "Qty", "Subtotal"];
     const rows = cart
-      .filter(item => item.product)
+      .filter(item => item?.product)
       .map(item => [
-        item.product.name,
-        `₹${item.product.price}`,
+        item?.product?.name,
+        `₹${item?.product?.price}`,
         editedQuantities[item._id],
-        `₹${(item.product.price * editedQuantities[item._id]).toFixed(2)}`
+        `₹${(item?.product?.price * editedQuantities[item._id]).toFixed(2)}`
       ]);
 
     autoTable(doc, { head: [cols], body: rows, startY: 20 });
