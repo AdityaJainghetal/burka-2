@@ -5,7 +5,7 @@ const Product = require('../models/product.model');
 const addToCart = async (req, res) => {
     try {
         const { productId } = req.params;
-        const { quantity = 1 } = req.body; // Default to 1 if quantity not provided
+        const { quantity = 1 } = req.body;
 
         if (!productId) {
             return res.status(400).json({ message: "Product ID is required" });
@@ -33,6 +33,48 @@ const addToCart = async (req, res) => {
                 cart.products[productIndex].quantity = newQuantity;
             } else {
                 cart.products.push({ product: productId, quantity });
+            }
+        }
+
+        await cart.save();
+        const updatedCart = await Cart.findOne().populate('products.product');
+        res.status(200).json(updatedCart);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Add a product to the cart by barcode
+const addToCartByBarcode = async (req, res) => {
+    try {
+        const { barcode, quantity = 1 } = req.body;
+
+        if (!barcode) {
+            return res.status(400).json({ message: "Barcode is required" });
+        }
+
+        const product = await Product.findOne({ barcode });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found for this barcode" });
+        }
+
+        if (product.stock < quantity) {
+            return res.status(400).json({ message: `Only ${product.stock} items available in stock` });
+        }
+
+        let cart = await Cart.findOne();
+        if (!cart) {
+            cart = new Cart({ products: [{ product: product._id, quantity }] });
+        } else {
+            const productIndex = cart.products.findIndex(p => p.product.toString() === product._id.toString());
+            if (productIndex > -1) {
+                const newQuantity = cart.products[productIndex].quantity + quantity;
+                if (product.stock < newQuantity) {
+                    return res.status(400).json({ message: `Only ${product.stock} items available in stock` });
+                }
+                cart.products[productIndex].quantity = newQuantity;
+            } else {
+                cart.products.push({ product: product._id, quantity });
             }
         }
 
@@ -73,7 +115,7 @@ const updateCartItem = async (req, res) => {
         }
 
         if (quantity <= 0) {
-            cart.products.splice(productIndex, 1); // Remove product from cart
+            cart.products.splice(productIndex, 1);
         } else {
             cart.products[productIndex].quantity = quantity;
         }
@@ -119,4 +161,4 @@ const getCart = async (req, res) => {
     }
 };
 
-module.exports = { addToCart, updateCartItem, removeCartItem, getCart };
+module.exports = { addToCart, addToCartByBarcode, updateCartItem, removeCartItem, getCart };

@@ -1,455 +1,5 @@
-// import { useRef, useState, useEffect } from "react";
-// import { getProductByBarcode } from "../api";
-// import { QrCode, Camera, AlertCircle, CheckCircle } from "lucide-react";
-// import jsQR from "jsqr";
-
-// const PurchaseScanQRCode = () => {
-//   const videoRef = useRef(null);
-//   const canvasRef = useRef(null);
-//   const [product, setProduct] = useState(null);
-//   const [scanning, setScanning] = useState(false);
-//   const [error, setError] = useState(null);
-//   const [barcode, setBarcode] = useState(null);
-//   const [loading, setLoading] = useState(false);
-
-//   useEffect(() => {
-//     if (!scanning) return;
-
-//     let stream;
-//     let animationId;
-
-//     const startCamera = async () => {
-//       try {
-//         stream = await navigator.mediaDevices.getUserMedia({
-//           video: { facingMode: "environment" },
-//         });
-
-//         if (videoRef.current) {
-//           videoRef.current.srcObject = stream;
-//           videoRef.current.onloadedmetadata = () => {
-//             videoRef.current.play();
-//             detectBarcode();
-//           };
-//         }
-//       } catch (err) {
-//         console.error("Error accessing camera:", err);
-//         setError("Unable to access the camera. Please check permissions.");
-//         setScanning(false);
-//       }
-//     };
-
-//     const detectBarcode = () => {
-//       if (!videoRef.current || !canvasRef.current || !scanning) return;
-
-//       const canvas = canvasRef.current;
-//       const context = canvas.getContext("2d");
-//       canvas.width = videoRef.current.videoWidth;
-//       canvas.height = videoRef.current.videoHeight;
-
-//       context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-//       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-//       const code = jsQR(imageData.data, canvas.width, canvas.height);
-
-//       if (code) {
-//         const scannedBarcode = code.data;
-//         setBarcode(scannedBarcode);
-//         handleScannedProduct(scannedBarcode);
-//       } else {
-//         animationId = requestAnimationFrame(detectBarcode);
-//       }
-//     };
-
-//     const handleScannedProduct = async (scannedBarcode) => {
-//       setLoading(true);
-//       try {
-//         const product = await getProductByBarcode(scannedBarcode);
-//         setProduct(product);
-//         // Here you would typically handle the purchase logic
-//         // For example, you might call a purchase API or set up a purchase state
-//       } catch (err) {
-//         setError(err.message || "Product not found");
-//       } finally {
-//         setLoading(false);
-//         setScanning(false);
-//       }
-//     };
-
-//     startCamera();
-
-//     return () => {
-//       if (stream) {
-//         stream.getTracks().forEach(track => track.stop());
-//       }
-//       if (animationId) {
-//         cancelAnimationFrame(animationId);
-//       }
-//     };
-//   }, [scanning]);
-
-//   const startScanning = () => {
-//     setError(null);
-//     setProduct(null);
-//     setBarcode(null);
-//     setScanning(true);
-//   };
-
-//   const stopScanning = () => {
-//     setScanning(false);
-//   };
-
-//   const handlePurchase = () => {
-//     // Implement your purchase logic here
-//     // This would typically call an API to process the purchase
-//     console.log("Purchasing product:", product);
-//     alert(`Purchase successful for ${product.name}`);
-//     setProduct(null);
-//     setBarcode(null);
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center p-4">
-//       <h2 className="text-xl font-bold mb-4">Scan Product QR Code for Purchase</h2>
-
-//       {error && (
-//         <div className="flex items-center bg-red-100 text-red-700 p-3 rounded mb-4 w-full max-w-md">
-//           <AlertCircle className="mr-2" />
-//           {error}
-//         </div>
-//       )}
-
-//       {product && (
-//         <div className="w-full max-w-md mb-4">
-//           <div className="flex items-center bg-green-100 text-green-700 p-3 rounded mb-2">
-//             <CheckCircle className="mr-2" />
-//             Product scanned successfully!
-//           </div>
-//           <div className="p-4 border border-gray-200 rounded-lg">
-//             <h3 className="text-lg font-medium">{product.name}</h3>
-//             <p className="text-gray-600">Price: ₹{product.price.toFixed(2)}</p>
-//             <button
-//               onClick={handlePurchase}
-//               className="mt-3 w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition"
-//             >
-//               Confirm Purchase
-//             </button>
-//           </div>
-//         </div>
-//       )}
-
-//       <div className="relative w-full max-w-md mb-4">
-//         {scanning ? (
-//           <>
-//             <video 
-//               ref={videoRef} 
-//               className="w-full h-auto border rounded"
-//               playsInline
-//               muted
-//             />
-//             <canvas 
-//               ref={canvasRef} 
-//               className="hidden"
-//             />
-//             <button
-//               onClick={stopScanning}
-//               disabled={loading}
-//               className={`mt-4 w-full py-2 px-4 rounded flex items-center justify-center ${
-//                 loading ? 'bg-gray-400' : 'bg-red-500 hover:bg-red-600'
-//               } text-white transition`}
-//             >
-//               {loading ? 'Processing...' : 'Stop Scanning'}
-//             </button>
-//           </>
-//         ) : (
-//           <div className="border-2 border-dashed border-gray-300 rounded p-8 flex flex-col items-center">
-//             <QrCode size={64} className="text-gray-400 mb-4" />
-//             <button
-//               onClick={startScanning}
-//               className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center transition"
-//             >
-//               <Camera className="mr-2" />
-//               Start Scanning
-//             </button>
-//           </div>
-//         )}
-//       </div>
-
-//       {barcode && !scanning && !product && (
-//         <div className="mt-4 p-3 bg-gray-100 rounded w-full max-w-md text-center">
-//           Scanned Barcode: {barcode}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default PurchaseScanQRCode;
-
-
-
-
-
-
-
-
-// import { useRef, useState, useEffect } from "react";
-// import { QrCode, Camera, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
-// import jsQR from "jsqr";
-// import axios from "axios";
-
-// const PurchaseScanQRCode = () => {
-//   const videoRef = useRef(null);
-//   const canvasRef = useRef(null);
-//   const [product, setProduct] = useState(null);
-//   const [scanning, setScanning] = useState(false);
-//   const [error, setError] = useState(null);
-//   const [barcode, setBarcode] = useState(null);
-//   const [loading, setLoading] = useState(false);
-//   const [purchaseLoading, setPurchaseLoading] = useState(false);
-//   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
-//   const [quantity, setQuantity] = useState(1);
-
-//   // Get product by barcode
-//   const getProductByBarcode = async (barcode) => {
-//     try {
-//       const response = await axios.get(`/api/products/barcode/${barcode}`);
-//       return response.data;
-//     } catch (error) {
-//       throw new Error(error.response?.data?.message || "Product not found");
-//     }
-//   };
-
-//   // Record purchase in backend
-//   const recordPurchase = async (productId, quantity) => {
-//     try {
-//       const response = await axios.post('/api/purchases', {
-//         productId,
-//         quantity,
-//         purchaseDate: new Date().toISOString()
-//       });
-//       return response.data;
-//     } catch (error) {
-//       throw new Error(error.response?.data?.message || "Failed to record purchase");
-//     }
-//   };
-
-//   useEffect(() => {
-//     if (!scanning) return;
-
-//     let stream;
-//     let animationId;
-
-//     const startCamera = async () => {
-//       try {
-//         stream = await navigator.mediaDevices.getUserMedia({
-//           video: { facingMode: "environment" },
-//         });
-
-//         if (videoRef.current) {
-//           videoRef.current.srcObject = stream;
-//           videoRef.current.onloadedmetadata = () => {
-//             videoRef.current.play();
-//             detectBarcode();
-//           };
-//         }
-//       } catch (err) {
-//         console.error("Error accessing camera:", err);
-//         setError("Unable to access the camera. Please check permissions.");
-//         setScanning(false);
-//       }
-//     };
-
-//     const detectBarcode = () => {
-//       if (!videoRef.current || !canvasRef.current || !scanning) return;
-
-//       const canvas = canvasRef.current;
-//       const context = canvas.getContext("2d");
-//       canvas.width = videoRef.current.videoWidth;
-//       canvas.height = videoRef.current.videoHeight;
-
-//       context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-//       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-//       const code = jsQR(imageData.data, canvas.width, canvas.height);
-
-//       if (code) {
-//         const scannedBarcode = code.data;
-//         setBarcode(scannedBarcode);
-//         handleScannedProduct(scannedBarcode);
-//       } else {
-//         animationId = requestAnimationFrame(detectBarcode);
-//       }
-//     };
-
-//     const handleScannedProduct = async (scannedBarcode) => {
-//       setLoading(true);
-//       try {
-//         const product = await getProductByBarcode(scannedBarcode);
-//         setProduct(product);
-//       } catch (err) {
-//         setError(err.message);
-//       } finally {
-//         setLoading(false);
-//         setScanning(false);
-//       }
-//     };
-
-//     startCamera();
-
-//     return () => {
-//       if (stream) {
-//         stream.getTracks().forEach(track => track.stop());
-//       }
-//       if (animationId) {
-//         cancelAnimationFrame(animationId);
-//       }
-//     };
-//   }, [scanning]);
-
-//   const startScanning = () => {
-//     setError(null);
-//     setProduct(null);
-//     setBarcode(null);
-//     setPurchaseSuccess(false);
-//     setScanning(true);
-//   };
-
-//   const stopScanning = () => {
-//     setScanning(false);
-//   };
-
-//   const handlePurchase = async () => {
-//     if (!product) return;
-    
-//     setPurchaseLoading(true);
-//     try {
-//       await recordPurchase(product._id, quantity);
-//       setPurchaseSuccess(true);
-//       setProduct(null);
-//       setBarcode(null);
-//     } catch (err) {
-//       setError(err.message);
-//     } finally {
-//       setPurchaseLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center p-4 max-w-md mx-auto">
-//       <h2 className="text-xl font-bold mb-4 flex items-center">
-//         <QrCode className="mr-2" />
-//         Purchase Scanner
-//       </h2>
-
-//       {error && (
-//         <div className="flex items-center bg-red-100 text-red-700 p-3 rounded mb-4 w-full">
-//           <AlertCircle className="mr-2" />
-//           {error}
-//         </div>
-//       )}
-
-//       {purchaseSuccess && (
-//         <div className="flex items-center bg-green-100 text-green-700 p-3 rounded mb-4 w-full">
-//           <CheckCircle className="mr-2" />
-//           Purchase recorded successfully!
-//         </div>
-//       )}
-
-//       <div className="relative w-full mb-4">
-//         {scanning ? (
-//           <>
-//             <video 
-//               ref={videoRef} 
-//               className="w-full h-auto border rounded"
-//               playsInline
-//               muted
-//             />
-//             <canvas 
-//               ref={canvasRef} 
-//               className="hidden"
-//             />
-//             <button
-//               onClick={stopScanning}
-//               disabled={loading}
-//               className={`mt-4 w-full py-2 px-4 rounded flex items-center justify-center ${
-//                 loading ? 'bg-gray-400' : 'bg-red-500 hover:bg-red-600'
-//               } text-white transition`}
-//             >
-//               {loading ? <Loader2 className="animate-spin mr-2" /> : null}
-//               {loading ? 'Processing...' : 'Stop Scanning'}
-//             </button>
-//           </>
-//         ) : (
-//           <div className="border-2 border-dashed border-gray-300 rounded p-8 flex flex-col items-center">
-//             <QrCode size={64} className="text-gray-400 mb-4" />
-//             <button
-//               onClick={startScanning}
-//               className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center transition"
-//             >
-//               <Camera className="mr-2" />
-//               Start Scanning
-//             </button>
-//           </div>
-//         )}
-//       </div>
-
-//       {product && (
-//         <div className="w-full mb-4 p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
-//           <h3 className="text-lg font-medium mb-2">{product.name}</h3>
-//           <div className="flex justify-between items-center mb-3">
-//             <span className="text-gray-600">Price:</span>
-//             <span className="font-bold">₹{product.price.toFixed(2)}</span>
-//           </div>
-          
-//           <div className="flex items-center justify-between mb-4">
-//             <span className="text-gray-600">Quantity:</span>
-//             <div className="flex items-center">
-//               <button 
-//                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-//                 className="px-3 py-1 border rounded-l bg-gray-100 hover:bg-gray-200"
-//               >
-//                 -
-//               </button>
-//               <span className="px-4 py-1 border-t border-b">{quantity}</span>
-//               <button 
-//                 onClick={() => setQuantity(quantity + 1)}
-//                 className="px-3 py-1 border rounded-r bg-gray-100 hover:bg-gray-200"
-//               >
-//                 +
-//               </button>
-//             </div>
-//           </div>
-
-//           <button
-//             onClick={handlePurchase}
-//             disabled={purchaseLoading}
-//             className={`w-full py-2 px-4 rounded flex items-center justify-center ${
-//               purchaseLoading ? 'bg-blue-400' : 'bg-blue-500 hover:bg-blue-600'
-//             } text-white transition`}
-//           >
-//             {purchaseLoading ? <Loader2 className="animate-spin mr-2" /> : null}
-//             {purchaseLoading ? 'Processing...' : 'Confirm Purchase'}
-//           </button>
-//         </div>
-//       )}
-
-//       {barcode && !product && !scanning && (
-//         <div className="mt-2 p-3 bg-gray-100 rounded w-full text-center text-sm">
-//           Scanned Barcode: {barcode}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default PurchaseScanQRCode;
-
-
-
-
-
-
-
 import { useRef, useState, useEffect } from "react";
-import { QrCode, Camera, AlertCircle, CheckCircle, Loader2, X, Scan } from "lucide-react";
+import { QrCode, Camera, AlertCircle, CheckCircle, Loader2, X, Scan, ShoppingCart } from "lucide-react";
 import jsQR from "jsqr";
 import axios from "axios";
 
@@ -464,27 +14,52 @@ const PurchaseScanQRCode = () => {
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [showAddToCartModal, setShowAddToCartModal] = useState(false);
+  const [scannedProduct, setScannedProduct] = useState(null);
+  const [cartQuantity, setCartQuantity] = useState(1);
+  const [cartLoading, setCartLoading] = useState(false);
 
   // Get product by barcode
   const getProductByBarcode = async (barcode) => {
     try {
-      const response = await axios.get(`/api/purchase/barcode/${barcode}`);
+      const response = await axios.get(`http://localhost:8080/purchase/barcode/${barcode}`);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || "Product not found");
     }
   };
 
-  // Update product quantity in backend
+  // Update product quantity in backend (for purchase)
   const updateProductQuantity = async (barcode, quantity) => {
     try {
-      const response = await axios.put('/api/purchase/scan', {
+      const response = await axios.put('http://localhost:8080/purchase/scan', {
         barcode,
         quantity
       });
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || "Failed to update product quantity");
+    }
+  };
+
+  // Add product to cart by barcode
+  const addToCart = async (barcode, quantity) => {
+    setCartLoading(true);
+    try {
+      const response = await axios.post(`http://localhost:8080/cart/addByBarcode`, {
+        barcode,
+        quantity
+      });
+      setShowAddToCartModal(false);
+      setScannedProduct(null);
+      setCartQuantity(1);
+      setBarcode(null);
+      setProduct(null);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to add product to cart");
+    } finally {
+      setCartLoading(false);
     }
   };
 
@@ -538,8 +113,9 @@ const PurchaseScanQRCode = () => {
     const handleScannedProduct = async (scannedBarcode) => {
       setLoading(true);
       try {
-        const product = await getProductByBarcode(scannedBarcode);
-        setProduct(product);
+        const productData = await getProductByBarcode(scannedBarcode);
+        setScannedProduct(productData);
+        setShowAddToCartModal(true);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -565,6 +141,9 @@ const PurchaseScanQRCode = () => {
     setProduct(null);
     setBarcode(null);
     setPurchaseSuccess(false);
+    setScannedProduct(null);
+    setShowAddToCartModal(false);
+    setCartQuantity(1);
     setScanning(true);
   };
 
@@ -682,7 +261,71 @@ const PurchaseScanQRCode = () => {
             </div>
           )}
 
-          {/* Scanned Product */}
+          {/* Add to Cart Modal */}
+          {showAddToCartModal && scannedProduct && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+                <div className="flex justify-between items-start mb-4">
+                  <h2 className="text-xl font-bold">Add to Cart</h2>
+                  <button
+                    onClick={() => setShowAddToCartModal(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+                <div className="mb-4 space-y-2">
+                  <p className="text-lg font-medium">{scannedProduct.name}</p>
+                  <p className="text-sm text-gray-600">Price: ₹{scannedProduct.price.toFixed(2)}</p>
+                  <p className="text-sm text-gray-600">Available: {scannedProduct.stock} in stock</p>
+                  <p className="text-sm text-gray-600">Barcode: {barcode}</p>
+                  {scannedProduct.description && (
+                    <p className="text-sm text-gray-600">Description: {scannedProduct.description}</p>
+                  )}
+                </div>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={scannedProduct.stock}
+                    value={cartQuantity}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (!isNaN(value) && value >= 1 && value <= scannedProduct.stock) {
+                        setCartQuantity(value);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowAddToCartModal(false)}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-md"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => addToCart(barcode, cartQuantity)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center"
+                    disabled={cartLoading}
+                  >
+                    {cartLoading ? (
+                      <Loader2 size={18} className="mr-2 animate-spin" />
+                    ) : (
+                      <ShoppingCart size={18} className="mr-2" />
+                    )}
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Scanned Product for Purchase */}
           {product && (
             <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden">
               <div className="bg-gray-50 p-4 border-b">
@@ -731,7 +374,7 @@ const PurchaseScanQRCode = () => {
           )}
 
           {/* Scanned Barcode Info */}
-          {barcode && !product && !scanning && (
+          {barcode && !product && !scanning && !showAddToCartModal && (
             <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 text-center text-sm">
               <span className="font-medium">Scanned Barcode:</span> {barcode}
             </div>
