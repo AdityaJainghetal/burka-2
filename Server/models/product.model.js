@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
@@ -31,14 +30,19 @@ const productSchema = new mongoose.Schema({
         ref: "Category"
     },
     subCategory: {
-       type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Subcategory"
     },
     images: [
         {
             type: String
         }
-    ]
+    ],
+    stock: {
+        type: Number,
+        required: true,
+        min: 0
+    }
 }, {
     timestamps: true,
 });

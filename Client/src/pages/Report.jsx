@@ -20,7 +20,7 @@ const TodayOrders = () => {
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get("https://burka-2-2.onrender.com/order");
+      const res = await axios.get("http://localhost:8080/order");
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -58,7 +58,7 @@ const TodayOrders = () => {
 
   const fetchPaymentDetails = async (orderId) => {
     try {
-      const res = await axios.get(`https://burka-2-2.onrender.com/payments/${orderId}`);
+      const res = await axios.get(`http://localhost:8080/payments/${orderId}`);
       setPaymentDetails(res.data.payments || []);
     } catch (err) {
       console.error("Failed to fetch payment details:", err);
@@ -90,7 +90,7 @@ const TodayOrders = () => {
         return;
       }
 
-      await axios.put(`https://burka-2-2.onrender.com/order/${orderId}`, { status: newStatus });
+      await axios.put(`http://localhost:8080/order/${orderId}`, { status: newStatus });
       await fetchOrders(); // Wait for refresh
       
       if (selectedOrder?._id === orderId) {

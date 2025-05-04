@@ -34,7 +34,7 @@ const CancelOrder = () => {
     }
 
     try {
-      await axios.put(`https://burka-2-2.onrender.com/order/${id}/cancel`, {
+      await axios.put(`http://localhost:8080/order/${id}/cancel`, {
         cancelDetails
       });
       navigate('/orders', { state: { message: 'Order cancelled successfully' } });

@@ -15,7 +15,7 @@ const Dashboard = () => {
   const fetchOrders = async () => {
     try {
       // Fetch all orders first
-      const allOrdersRes = await axios.get("https://burka-2-2.onrender.com/order");
+      const allOrdersRes = await axios.get("http://localhost:8080/order");
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -26,11 +26,11 @@ const Dashboard = () => {
       });
       
       // Fetch shipped orders
-      const shippedRes = await axios.get('https://burka-2-2.onrender.com/order/status/shipped');
+      const shippedRes = await axios.get('http://localhost:8080/order/status/shipped');
       const shippedOrders = shippedRes.data.orders || [];
       
       // Fetch delivered orders
-      const deliveredRes = await axios.get('https://burka-2-2.onrender.com/order/status/delivered');
+      const deliveredRes = await axios.get('http://localhost:8080/order/status/delivered');
       const deliveredOrders = deliveredRes.data.orders || [];
       
       setOrders(allOrdersRes.data.orders);

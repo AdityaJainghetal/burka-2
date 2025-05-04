@@ -14,7 +14,7 @@
 //   const fetchDueAmountOrders = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await axios.get(`https://burka-2-2.onrender.com/order/dueAmount/${true}`);
+//       const response = await axios.get(`http://localhost:8080/order/dueAmount/${true}`);
 //       const ordersWithFormattedId = response.data.orders.map(order => ({
 //         ...order,
 //         formattedId: `ORD-${order._id.toString().substring(0, 8).toUpperCase()}`
@@ -37,7 +37,7 @@
 
 //   const markAsPaid = async (orderId) => {
 //     try {
-//       await axios.put(`https://burka-2-2.onrender.com/orders/${orderId}/payment`, {
+//       await axios.put(`http://localhost:8080/orders/${orderId}/payment`, {
 //         dueAmount: 0,
 //         paymentStatus: 'paid'
 //       });
@@ -229,7 +229,7 @@ const Invoice = () => {
   const fetchDueAmountOrders = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`https://burka-2-2.onrender.com/order/dueAmount/${true}`);
+      const response = await axios.get(`http://localhost:8080/order/dueAmount/${true}`);
       const ordersWithFormattedId = response.data.orders.map(order => ({
         ...order,
         formattedId: `ORD-${order._id.toString().substring(0, 8).toUpperCase()}`
@@ -252,7 +252,7 @@ const Invoice = () => {
 
   const markAsPaid = async (orderId) => {
     try {
-      await axios.put(`https://burka-2-2.onrender.com/orders/${orderId}/payment`, {
+      await axios.put(`http://localhost:8080/orders/${orderId}/payment`, {
         dueAmount: 0,
         paymentStatus: 'paid'
       });

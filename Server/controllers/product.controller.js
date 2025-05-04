@@ -25,21 +25,18 @@ const getProductById = async (req, res) => {
     }
 };
 
-
-
-
 const createProduct = async (req, res) => {
     try {
       const {
         name,
         price,
-        mrp,
         description,
         color,
         fabric,
         size,
         category,
         subCategory,
+        stock
       } = req.body;
   
       // Parse JSON string if needed (e.g., size might be sent as stringified array)
@@ -70,7 +67,8 @@ const createProduct = async (req, res) => {
         size: parsedSize,
         category,
         subCategory,
-        images: uploadedImages, // URLs from ImageKit
+        images: uploadedImages,
+        stock
       });
   
       await newProduct.save();
@@ -87,23 +85,31 @@ const createProduct = async (req, res) => {
       console.error("Error creating product:", error);
       res.status(500).json({ error: error.message });
     }
-  };
-
-
-
-
-
-  
+};
 
 // Update a product
 const updateProduct = async (req, res) => {
     try {
-        const { name, image, price } = req.body;
+        const { name, price, description, color, fabric, size, category, subCategory, images, stock } = req.body;
+        const parsedSize = size ? JSON.parse(size) : undefined;
+        
         const updatedProduct = await Product.findByIdAndUpdate(
             req.params.id,
-            { name, image, price },
+            { 
+                name, 
+                price, 
+                description, 
+                color, 
+                fabric, 
+                size: parsedSize, 
+                category, 
+                subCategory, 
+                images, 
+                stock 
+            },
             { new: true }
         );
+        
         if (!updatedProduct) {
             return res.status(404).json({ message: 'Product not found' });
         }
@@ -113,13 +119,27 @@ const updateProduct = async (req, res) => {
     }
 };
 
+const purchaseProduct = async (req, res) => {
+    try {
+        const { id, quantity } = req.query;
+        
+        const product = await Product.findById(id);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
 
-const purchaseproduct =async(req, res)=>{
-    const {id}=req.query;
-    const Data= await Product.findById(id);
-   
-    res.send(Data)
-}
+        if (product.stock < quantity) {
+            return res.status(400).json({ message: 'Insufficient stock' });
+        }
+
+        product.stock -= quantity;
+        await product.save();
+        
+        res.status(200).json(product);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 // Delete a product
 const deleteProduct = async (req, res) => {
@@ -135,4 +155,4 @@ const deleteProduct = async (req, res) => {
     }
 };
 
-module.exports = { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct,purchaseproduct };
+module.exports = { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, purchaseProduct };

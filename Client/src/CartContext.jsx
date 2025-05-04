@@ -12,8 +12,9 @@ export const CartProvider = ({ children }) => {
 
   const fetchCart = async () => {
     try {
-      const response = await axios.get("https://burka-2-2.onrender.com/cart");
-      setCart(response.data.products || []);
+      const response = await axios.get("http://localhost:8080/cart");
+      setCart(response.data.products.filter(item => item.product !==null) || []);
+
     } catch (error) {
       console.error("Error fetching cart:", error);
     }

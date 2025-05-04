@@ -1,30 +1,44 @@
 const Cart = require('../models/cart.model');
 const Product = require('../models/product.model');
 
-// Add a product to the cart or increase quantity if it exists
+// Add a product to the cart with specified quantity
 const addToCart = async (req, res) => {
     try {
         const { productId } = req.params;
+        const { quantity = 1 } = req.body; // Default to 1 if quantity not provided
+
         if (!productId) {
             return res.status(400).json({ message: "Product ID is required" });
         }
 
         const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        if (product.stock < quantity) {
+            return res.status(400).json({ message: `Only ${product.stock} items available in stock` });
+        }
 
         let cart = await Cart.findOne();
         if (!cart) {
-            cart = new Cart({ products: [{ product: productId, quantity: 1 }] });
+            cart = new Cart({ products: [{ product: productId, quantity }] });
         } else {
             const productIndex = cart.products.findIndex(p => p.product.toString() === productId);
             if (productIndex > -1) {
-                cart.products[productIndex].quantity = String(Number(cart.products[productIndex].quantity) + 1);
+                const newQuantity = cart.products[productIndex].quantity + quantity;
+                if (product.stock < newQuantity) {
+                    return res.status(400).json({ message: `Only ${product.stock} items available in stock` });
+                }
+                cart.products[productIndex].quantity = newQuantity;
             } else {
-                cart.products.push({ product: productId, quantity: "1" });
+                cart.products.push({ product: productId, quantity });
             }
         }
 
         await cart.save();
-        res.status(200).json(product);
+        const updatedCart = await Cart.findOne().populate('products.product');
+        res.status(200).json(updatedCart);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -39,26 +53,34 @@ const updateCartItem = async (req, res) => {
             return res.status(400).json({ message: "Product ID and quantity are required" });
         }
 
-        let cart = await Cart.findOne().populate('products.product') // Populating the product 
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        if (quantity > product.stock) {
+            return res.status(400).json({ message: `Only ${product.stock} items available in stock` });
+        }
+
+        let cart = await Cart.findOne();
         if (!cart) {
             return res.status(404).json({ message: "Cart not found" });
         }
-     
-        
 
-        const productIndex = cart.products.findIndex(p => p.product._id.toString() == productId);
+        const productIndex = cart.products.findIndex(p => p.product.toString() === productId);
         if (productIndex === -1) {
             return res.status(404).json({ message: "Product not found in cart" });
         }
 
-        if (Number(quantity) === 0) {
+        if (quantity <= 0) {
             cart.products.splice(productIndex, 1); // Remove product from cart
         } else {
-            cart.products[productIndex].quantity = String(quantity);
+            cart.products[productIndex].quantity = quantity;
         }
 
         await cart.save();
-        res.status(200).json(cart);
+        const updatedCart = await Cart.findOne().populate('products.product');
+        res.status(200).json(updatedCart);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -76,7 +98,8 @@ const removeCartItem = async (req, res) => {
         cart.products = cart.products.filter(p => p.product.toString() !== productId);
         await cart.save();
 
-        res.status(200).json(cart);
+        const updatedCart = await Cart.findOne().populate('products.product');
+        res.status(200).json(updatedCart);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
