@@ -182,7 +182,7 @@ const removeCartItem = async (req, res) => {
 // Get the cart details
 const getCart = async (req, res) => {
     try {
-        const cart = await Cart.findOne().populate('products[0].product');
+        const cart = await Cart.findOne().populate('products.product');
         if (!cart) {
             console.log("Cart not found");
             return res.status(404).json({ message: "Cart is empty" });
