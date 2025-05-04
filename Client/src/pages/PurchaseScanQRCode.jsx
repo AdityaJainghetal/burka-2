@@ -1,34 +1,33 @@
 import { useRef, useState, useEffect } from "react";
-import { QrCode, Camera, AlertCircle, CheckCircle, Loader2, X, Scan, ShoppingCart } from "lucide-react";
-import jsQR from "jsqr";
+import { QrCode, Camera, AlertCircle, CheckCircle, Loader2, X, Scan, ShoppingCart, Keyboard } from "lucide-react";
 import axios from "axios";
 
 const PurchaseScanQRCode = () => {
   const videoRef = useRef(null);
-  const canvasRef = useRef(null);
   const [product, setProduct] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState(null);
-  const [barcode, setBarcode] = useState(null);
+  const [barcode, setBarcode] = useState("");
   const [loading, setLoading] = useState(false);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
-  const [cartQuantity, setCartQuantity] = useState("1"); // Use string for typeable input
+  const [cartQuantity, setCartQuantity] = useState("1");
   const [cartQuantityError, setCartQuantityError] = useState(null);
   const [cartLoading, setCartLoading] = useState(false);
+  const [manualBarcode, setManualBarcode] = useState("");
 
   // Get product by barcode
   const getProductByBarcode = async (barcode) => {
     try {
-      console.log("Fetching product for barcode:", barcode); // Debug
+      console.log("Fetching product for barcode:", barcode);
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/purchase/barcode/${barcode}`);
-      console.log("Product response:", response.data); // Debug
+      console.log("Product response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Error fetching product:", error); // Debug
+      console.error("Error fetching product:", error);
       throw new Error(error.response?.data?.message || "Product not found for this barcode");
     }
   };
@@ -57,7 +56,8 @@ const PurchaseScanQRCode = () => {
       setShowAddToCartModal(false);
       setScannedProduct(null);
       setCartQuantity("1");
-      setBarcode(null);
+      setCartQuantityError(null);
+      setBarcode("");
       setProduct(null);
       setPurchaseSuccess(true);
       setError("Product added to cart successfully!");
@@ -72,13 +72,24 @@ const PurchaseScanQRCode = () => {
   useEffect(() => {
     if (!scanning) return;
 
+    // Check for BarcodeDetector support
+    if (!("BarcodeDetector" in window)) {
+      setError("Barcode Detection API is not supported in this browser. Please use a modern browser like Chrome or Edge.");
+      setScanning(false);
+      return;
+    }
+
+    // Initialize BarcodeDetector with supported formats
+    const barcodeDetector = new window.BarcodeDetector({
+      formats: ["qr_code", "ean_13", "code_128", "upc_a", "upc_e"]
+    });
+
     let stream;
-    let animationId;
 
     const startCamera = async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" }
+          video: { facingMode: "environment", width: 640, height: 480 }
         });
 
         if (videoRef.current) {
@@ -90,34 +101,27 @@ const PurchaseScanQRCode = () => {
         }
       } catch (err) {
         console.error("Error accessing camera:", err);
-        setError("Unable to access the camera. Please check permissions.");
+        setError("Unable to access the camera. Please check permissions or use a secure server (HTTPS).");
         setScanning(false);
       }
     };
 
-    const detectBarcode = () => {
-      if (!videoRef.current || !canvasRef.current || !scanning) return;
+    const detectBarcode = async () => {
+      if (!videoRef.current || !scanning) return;
 
-      const canvas = canvasRef.current;
-      const context = canvas.getContext("2d");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-
-      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, canvas.width, canvas.height);
-
-      if (code) {
-        const scannedBarcode = code.data.trim(); // Trim whitespace
-        if (scannedBarcode) {
+      try {
+        const barcodes = await barcodeDetector.detect(videoRef.current);
+        if (barcodes.length > 0) {
+          const scannedBarcode = barcodes[0].rawValue.trim();
           setBarcode(scannedBarcode);
           handleScannedProduct(scannedBarcode);
-        } else {
-          setError("Empty barcode detected. Please scan a valid QR code.");
-          setScanning(false);
+        } else if (scanning) {
+          requestAnimationFrame(detectBarcode);
         }
-      } else {
-        animationId = requestAnimationFrame(detectBarcode);
+      } catch (err) {
+        console.error("Error detecting barcode:", err);
+        setError("Failed to detect barcode. Please try again.");
+        setScanning(false);
       }
     };
 
@@ -127,11 +131,12 @@ const PurchaseScanQRCode = () => {
         const productData = await getProductByBarcode(scannedBarcode);
         setScannedProduct(productData);
         setShowAddToCartModal(true);
+        setScanning(false);
       } catch (err) {
         setError(err.message);
+        setScanning(false);
       } finally {
         setLoading(false);
-        setScanning(false);
       }
     };
 
@@ -141,21 +146,19 @@ const PurchaseScanQRCode = () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
-      if (animationId) {
-        cancelAnimationFrame(animationId);
-      }
     };
   }, [scanning]);
 
   const startScanning = () => {
     setError(null);
     setProduct(null);
-    setBarcode(null);
+    setBarcode("");
     setPurchaseSuccess(false);
     setScannedProduct(null);
     setShowAddToCartModal(false);
     setCartQuantity("1");
     setCartQuantityError(null);
+    setManualBarcode("");
     setScanning(true);
   };
 
@@ -171,7 +174,7 @@ const PurchaseScanQRCode = () => {
       await updateProductQuantity(barcode, quantity);
       setPurchaseSuccess(true);
       setProduct(null);
-      setBarcode(null);
+      setBarcode("");
       setQuantity(1);
     } catch (err) {
       setError(err.message);
@@ -191,6 +194,25 @@ const PurchaseScanQRCode = () => {
       setCartQuantityError(`Quantity cannot exceed available stock (${scannedProduct.stock})`);
     } else {
       setCartQuantityError(null);
+    }
+  };
+
+  const handleManualBarcodeSubmit = async () => {
+    if (!manualBarcode) {
+      setError("Please enter a barcode");
+      return;
+    }
+    setBarcode(manualBarcode);
+    setLoading(true);
+    try {
+      const productData = await getProductByBarcode(manualBarcode);
+      setScannedProduct(productData);
+      setShowAddToCartModal(true);
+      setManualBarcode("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -253,27 +275,50 @@ const PurchaseScanQRCode = () => {
                   </div>
                 </div>
               </div>
-              <canvas ref={canvasRef} className="hidden" />
-
               <div className="mt-4 text-center text-sm text-gray-500">
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Processing QR code...</span>
+                    <span>Processing barcode...</span>
                   </div>
                 ) : (
-                  <span>Point your camera at a QR code</span>
+                  <span>Point your camera at a barcode</span>
                 )}
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center py-8">
+            <div className="flex flex-col items-center py-8 space-y-4">
               <div className="relative mb-6">
                 <div className="w-40 h-40 rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center border-2 border-dashed border-blue-200">
                   <QrCode className="h-20 w-20 text-blue-400" />
                 </div>
                 <div className="absolute -bottom-3 -right-3 bg-blue-500 rounded-full p-3 shadow-lg">
                   <Scan className="h-6 w-6 text-white" />
+                </div>
+              </div>
+
+              {/* Manual Barcode Input */}
+              <div className="w-full max-w-xs">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Enter Barcode Manually
+                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={manualBarcode}
+                    onChange={(e) => setManualBarcode(e.target.value)}
+                    placeholder="Enter barcode"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                  <button
+                    onClick={handleManualBarcodeSubmit}
+                    disabled={loading || !manualBarcode}
+                    className={`p-2 rounded-md flex items-center justify-center ${
+                      loading || !manualBarcode ? 'bg-gray-300' : 'bg-blue-600 hover:bg-blue-700'
+                    } text-white`}
+                  >
+                    <Keyboard className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
 
@@ -377,13 +422,11 @@ const PurchaseScanQRCode = () => {
               <div className="bg-gray-50 p-4 border-b">
                 <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
               </div>
-
               <div className="p-4 space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Price:</span>
                   <span className="font-bold text-gray-800">₹{product.price.toFixed(2)}</span>
                 </div>
-
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Quantity to Add:</span>
                   <div className="flex items-center space-x-2">
@@ -402,7 +445,6 @@ const PurchaseScanQRCode = () => {
                     </button>
                   </div>
                 </div>
-
                 <div className="pt-2">
                   <button
                     onClick={handlePurchase}
