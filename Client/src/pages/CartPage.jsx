@@ -41,7 +41,7 @@ const CartPage = () => {
     const fetchVendors = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("http://localhost:8080/user");
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/user`);
         setVendors(res.data);
       } catch {
         setError("Failed to load vendors.");
@@ -111,7 +111,7 @@ const CartPage = () => {
   const handleDelete = async id => {
     setItemsBeingDeleted(prev => ({ ...prev, [id]: true }));
     try {
-      await axios.delete(`http://localhost:8080/cart/remove/${id}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/cart/remove/${id}`);
       await fetchCart();
     } catch {
       setError("Failed to delete.");
@@ -146,7 +146,7 @@ const CartPage = () => {
     };
 
     try {
-      const res = await axios.post("http://localhost:8080/order", payload);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/order`, payload);
 
       if (res.data.success) {
         setPaymentSuccess(true);
@@ -155,7 +155,7 @@ const CartPage = () => {
           cart
             .filter(item => item.product)
             .map(item =>
-              axios.delete(`http://localhost:8080/cart/remove/${item.product._id}`)
+              axios.delete(`${import.meta.env.VITE_API_URL}/cart/remove/${item.product._id}`)
             )
         );
         await fetchCart();

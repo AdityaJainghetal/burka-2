@@ -30,7 +30,7 @@ const ShipOrder = () => {
     setError('');
 
     try {
-      await axios.put(`http://localhost:8080/order/${id}/ship`, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/order/${id}/ship`, {
         remark: shippingDetails.remark,
         shippingDate: shippingDetails.shippingDate
       });

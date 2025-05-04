@@ -35,7 +35,7 @@ const DeliverOrder = () => {
     }
 
     try {
-      await axios.put(`http://localhost:8080/order/${id}/deliver`, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/order/${id}/deliver`, {
         deliveryDetails
       });
       navigate('/orders');

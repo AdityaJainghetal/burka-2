@@ -66,7 +66,7 @@ const ProductList = () => {
 
   const updateProduct = async (id, updatedData) => {
     try {
-      const response = await fetch(`http://localhost:8080/product/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/product/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -279,7 +279,7 @@ const ProductList = () => {
 
     setAddingToCart((prev) => ({ ...prev, [productId]: true }))
     try {
-      await fetch(`http://localhost:8080/cart/add/${productId}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/cart/add/${productId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

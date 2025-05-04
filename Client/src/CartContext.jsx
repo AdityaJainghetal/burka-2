@@ -12,7 +12,7 @@ export const CartProvider = ({ children }) => {
 
   const fetchCart = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/cart");
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/cart`);
       setCart(response.data.products.filter(item => item.product !==null) || []);
 
     } catch (error) {

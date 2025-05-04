@@ -22,7 +22,7 @@ const PurchaseScanQRCode = () => {
   // Get product by barcode
   const getProductByBarcode = async (barcode) => {
     try {
-      const response = await axios.get(`http://localhost:8080/purchase/barcode/${barcode}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/purchase/barcode/${barcode}`);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || "Product not found");
@@ -32,7 +32,7 @@ const PurchaseScanQRCode = () => {
   // Update purchase and product stock
   const updateProductQuantity = async (barcode, quantity) => {
     try {
-      const response = await axios.put('http://localhost:8080/purchase/scan', {
+      const response = await axios.put(`${import.meta.env.VITE_API_URL}/purchase/scan`, {
         barcode,
         quantity
       });
@@ -46,7 +46,7 @@ const PurchaseScanQRCode = () => {
   const addToCart = async (barcode, quantity) => {
     setCartLoading(true);
     try {
-      const response = await axios.post(`http://localhost:8080/cart/addByBarcode`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/cart/addByBarcode`, {
         barcode,
         quantity
       });
