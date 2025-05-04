@@ -133,13 +133,13 @@ const CartPage = () => {
         .map(item => ({
           productId: item.product._id,
           productName: item.product.name,
-          price: item.product.price,
+          price: item.product?.price,
           quantity: editedQuantities[item._id],
           productImage: item.product.images[0] || "",
           discountName: vendors.find(v => v._id === selectedVendor)?.firmName || "",
           discountPercentage: discount,
           priceAfterDiscount:
-            item.product.price - (item.product.price * discount) / 100,
+            item.product?.price - (item.product?.price * discount) / 100,
         })),
       totalPrice: subtotal,
       totalPriceAfterDiscount: total,
@@ -220,7 +220,7 @@ const CartPage = () => {
                     )}
                     <div>
                       <h2 className="font-medium text-lg">{item.product.name}</h2>
-                      <p className="text-gray-500">₹{item.product.price} each</p>
+                      <p className="text-gray-500">₹{item.product?.price} each</p>
                       <p className="text-gray-500">
                         {item.product.stock > 0
                           ? `${item.product.stock} in stock`
@@ -272,7 +272,7 @@ const CartPage = () => {
                   </div>
                   <div className="flex flex-col items-end justify-between">
                     <p className="font-medium text-lg">
-                      ₹{(item.product.price * editedQuantities[item._id]).toFixed(
+                      ₹{(item.product?.price * editedQuantities[item._id]).toFixed(
                         2
                       )}
                     </p>
@@ -380,7 +380,7 @@ const CartPage = () => {
                       {item.product.name} (x{editedQuantities[item._id]})
                     </span>
                     <span>
-                      ₹{(item.product.price * editedQuantities[item._id]).toFixed(2)}
+                      ₹{(item.product?.price * editedQuantities[item._id]).toFixed(2)}
                     </span>
                   </div>
                 ))}
