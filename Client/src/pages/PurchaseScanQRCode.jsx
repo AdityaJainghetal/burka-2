@@ -29,7 +29,7 @@ const PurchaseScanQRCode = () => {
     }
   };
 
-  // Update product quantity in backend (for purchase)
+  // Update purchase and product stock
   const updateProductQuantity = async (barcode, quantity) => {
     try {
       const response = await axios.put('http://localhost:8080/purchase/scan', {
@@ -38,7 +38,7 @@ const PurchaseScanQRCode = () => {
       });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to update product quantity");
+      throw new Error(error.response?.data?.message || "Failed to record purchase");
     }
   };
 
@@ -55,6 +55,7 @@ const PurchaseScanQRCode = () => {
       setCartQuantity(1);
       setBarcode(null);
       setProduct(null);
+      setPurchaseSuccess(true);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || "Failed to add product to cart");
@@ -201,7 +202,7 @@ const PurchaseScanQRCode = () => {
           {purchaseSuccess && (
             <div className="flex items-center bg-green-50 text-green-700 p-3 rounded-lg mb-4 border border-green-200">
               <CheckCircle className="mr-2 flex-shrink-0" />
-              <span>Quantity updated successfully!</span>
+              <span>Action completed successfully!</span>
             </div>
           )}
         </div>
@@ -281,6 +282,12 @@ const PurchaseScanQRCode = () => {
                   <p className="text-sm text-gray-600">Barcode: {barcode}</p>
                   {scannedProduct.description && (
                     <p className="text-sm text-gray-600">Description: {scannedProduct.description}</p>
+                  )}
+                  {scannedProduct.category && (
+                    <p className="text-sm text-gray-600">Category: {scannedProduct.category.name}</p>
+                  )}
+                  {scannedProduct.size && scannedProduct.size.length > 0 && (
+                    <p className="text-sm text-gray-600">Sizes: {scannedProduct.size.join(', ')}</p>
                   )}
                 </div>
                 <div className="mb-6">
@@ -366,7 +373,7 @@ const PurchaseScanQRCode = () => {
                     }`}
                   >
                     {purchaseLoading && <Loader2 className="h-5 w-5 animate-spin" />}
-                    <span>{purchaseLoading ? 'Processing...' : 'Update Quantity'}</span>
+                    <span>{purchaseLoading ? 'Processing...' : 'Record Purchase'}</span>
                   </button>
                 </div>
               </div>
