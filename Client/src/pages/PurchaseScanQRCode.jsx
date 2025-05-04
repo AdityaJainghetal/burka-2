@@ -35,12 +35,15 @@ const PurchaseScanQRCode = () => {
   // Update purchase and product stock
   const updateProductQuantity = async (barcode, quantity) => {
     try {
+      console.log("Updating product quantity for barcode:", barcode, "Quantity:", quantity);
       const response = await axios.put(`${import.meta.env.VITE_API_URL}/purchase/scan`, {
         barcode,
         quantity
       });
+      console.log("Update response:", response.data);
       return response.data;
     } catch (error) {
+      console.error("Error updating product quantity:", error);
       throw new Error(error.response?.data?.message || "Failed to record purchase");
     }
   };
@@ -49,10 +52,12 @@ const PurchaseScanQRCode = () => {
   const addToCart = async (barcode, quantity) => {
     setCartLoading(true);
     try {
+      console.log("Adding to cart - Barcode:", barcode, "Quantity:", quantity);
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/cart/addByBarcode`, {
         barcode,
         quantity
       });
+      console.log("Cart response:", response.data);
       setShowAddToCartModal(false);
       setScannedProduct(null);
       setCartQuantity("1");
@@ -61,9 +66,14 @@ const PurchaseScanQRCode = () => {
       setProduct(null);
       setPurchaseSuccess(true);
       setError("Product added to cart successfully!");
+      alert("Product added to cart successfully!");
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to add product to cart");
+      console.error("Error adding to cart:", error);
+      const errorMessage = error.response?.data?.message || "Failed to add product to cart";
+      setError(errorMessage);
+      alert(`Error: ${errorMessage}`);
+      throw new Error(errorMessage);
     } finally {
       setCartLoading(false);
     }
@@ -75,6 +85,8 @@ const PurchaseScanQRCode = () => {
     // Check for BarcodeDetector support
     if (!("BarcodeDetector" in window)) {
       setError("Barcode Detection API is not supported in this browser. Please use a modern browser like Chrome or Edge.");
+      alert("Barcode Detection API is not supported in this browser.");
+      console.error("BarcodeDetector not supported");
       setScanning(false);
       return;
     }
@@ -88,6 +100,7 @@ const PurchaseScanQRCode = () => {
 
     const startCamera = async () => {
       try {
+        console.log("Starting camera...");
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "environment", width: 640, height: 480 }
         });
@@ -96,12 +109,14 @@ const PurchaseScanQRCode = () => {
           videoRef.current.srcObject = stream;
           videoRef.current.onloadedmetadata = () => {
             videoRef.current.play();
+            console.log("Camera started, detecting barcodes...");
             detectBarcode();
           };
         }
       } catch (err) {
         console.error("Error accessing camera:", err);
         setError("Unable to access the camera. Please check permissions or use a secure server (HTTPS).");
+        alert("Unable to access the camera. Please check permissions or use HTTPS.");
         setScanning(false);
       }
     };
@@ -113,6 +128,7 @@ const PurchaseScanQRCode = () => {
         const barcodes = await barcodeDetector.detect(videoRef.current);
         if (barcodes.length > 0) {
           const scannedBarcode = barcodes[0].rawValue.trim();
+          console.log("Detected barcode:", scannedBarcode);
           setBarcode(scannedBarcode);
           handleScannedProduct(scannedBarcode);
         } else if (scanning) {
@@ -121,19 +137,25 @@ const PurchaseScanQRCode = () => {
       } catch (err) {
         console.error("Error detecting barcode:", err);
         setError("Failed to detect barcode. Please try again.");
+        alert("Failed to detect barcode. Please try again.");
         setScanning(false);
       }
     };
 
     const handleScannedProduct = async (scannedBarcode) => {
       setLoading(true);
+      console.log("Handling scanned barcode:", scannedBarcode);
       try {
         const productData = await getProductByBarcode(scannedBarcode);
+        console.log("Product fetched successfully:", productData);
         setScannedProduct(productData);
         setShowAddToCartModal(true);
         setScanning(false);
+        alert(`Product found: ${productData.name}`);
       } catch (err) {
+        console.error("Error handling scanned product:", err.message);
         setError(err.message);
+        alert(`Error: ${err.message}`);
         setScanning(false);
       } finally {
         setLoading(false);
@@ -145,11 +167,13 @@ const PurchaseScanQRCode = () => {
     return () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
+        console.log("Camera stream stopped");
       }
     };
   }, [scanning]);
 
   const startScanning = () => {
+    console.log("Starting scanning...");
     setError(null);
     setProduct(null);
     setBarcode("");
@@ -163,34 +187,45 @@ const PurchaseScanQRCode = () => {
   };
 
   const stopScanning = () => {
+    console.log("Stopping scanning...");
     setScanning(false);
   };
 
   const handlePurchase = async () => {
-    if (!product || !barcode) return;
+    if (!product || !barcode) {
+      console.log("No product or barcode for purchase");
+      setError("No product or barcode selected for purchase");
+      alert("No product or barcode selected for purchase");
+      return;
+    }
 
     setPurchaseLoading(true);
     try {
       await updateProductQuantity(barcode, quantity);
+      console.log("Purchase recorded successfully");
       setPurchaseSuccess(true);
       setProduct(null);
       setBarcode("");
       setQuantity(1);
+      alert("Purchase recorded successfully!");
     } catch (err) {
+      console.error("Error recording purchase:", err.message);
       setError(err.message);
+      alert(`Error: ${err.message}`);
     } finally {
       setPurchaseLoading(false);
     }
   };
 
   const handleQuantityChange = (value) => {
+    console.log("Quantity changed:", value);
     setCartQuantity(value);
     const numValue = parseInt(value, 10);
     if (!value) {
       setCartQuantityError("Quantity is required");
     } else if (isNaN(numValue) || numValue < 1) {
       setCartQuantityError("Quantity must be at least 1");
-    } else if (numValue > scannedProduct.stock) {
+    } else if (scannedProduct && numValue > scannedProduct.stock) {
       setCartQuantityError(`Quantity cannot exceed available stock (${scannedProduct.stock})`);
     } else {
       setCartQuantityError(null);
@@ -199,18 +234,28 @@ const PurchaseScanQRCode = () => {
 
   const handleManualBarcodeSubmit = async () => {
     if (!manualBarcode) {
+      console.log("Manual barcode input is empty");
       setError("Please enter a barcode");
+      alert("Please enter a barcode");
       return;
     }
-    setBarcode(manualBarcode);
+
+    const trimmedBarcode = manualBarcode.trim();
+    console.log("Submitting manual barcode:", trimmedBarcode);
+    setBarcode(trimmedBarcode);
     setLoading(true);
+
     try {
-      const productData = await getProductByBarcode(manualBarcode);
+      const productData = await getProductByBarcode(trimmedBarcode);
+      console.log("Manual barcode product fetched:", productData);
       setScannedProduct(productData);
       setShowAddToCartModal(true);
       setManualBarcode("");
+      alert(`Product found: ${productData.name}`);
     } catch (err) {
+      console.error("Error fetching product for manual barcode:", err.message);
       setError(err.message);
+      alert(`Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -312,9 +357,9 @@ const PurchaseScanQRCode = () => {
                   />
                   <button
                     onClick={handleManualBarcodeSubmit}
-                    disabled={loading || !manualBarcode}
+                    disabled={loading || !manualBarcode.trim()}
                     className={`p-2 rounded-md flex items-center justify-center ${
-                      loading || !manualBarcode ? 'bg-gray-300' : 'bg-blue-600 hover:bg-blue-700'
+                      loading || !manualBarcode.trim() ? 'bg-gray-300' : 'bg-blue-600 hover:bg-blue-700'
                     } text-white`}
                   >
                     <Keyboard className="h-5 w-5" />
@@ -340,6 +385,7 @@ const PurchaseScanQRCode = () => {
                   <h2 className="text-xl font-bold">Add to Cart</h2>
                   <button
                     onClick={() => {
+                      console.log("Closing modal");
                       setShowAddToCartModal(false);
                       setScannedProduct(null);
                       setCartQuantity("1");
@@ -385,6 +431,7 @@ const PurchaseScanQRCode = () => {
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => {
+                      console.log("Cancel button clicked");
                       setShowAddToCartModal(false);
                       setScannedProduct(null);
                       setCartQuantity("1");
@@ -396,9 +443,13 @@ const PurchaseScanQRCode = () => {
                   </button>
                   <button
                     onClick={() => {
+                      console.log("Add to cart button clicked, quantity:", cartQuantity);
                       const numQuantity = parseInt(cartQuantity, 10);
                       if (!cartQuantityError && numQuantity >= 1 && numQuantity <= scannedProduct.stock) {
                         addToCart(barcode, numQuantity);
+                      } else {
+                        console.log("Invalid quantity, cannot add to cart");
+                        alert("Please enter a valid quantity");
                       }
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center"
