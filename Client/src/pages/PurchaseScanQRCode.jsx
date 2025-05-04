@@ -439,6 +439,7 @@ const PurchaseScanQRCode = () => {
                         src={scannedProduct.barcode} 
                         alt="Barcode" 
                         className="w-32 h-auto mt-1 border border-gray-200 rounded" 
+                        onError={() => console.log("Failed to load barcode image:", scannedProduct.barcode)}
                       />
                     </div>
                   )}
@@ -446,7 +447,7 @@ const PurchaseScanQRCode = () => {
                     <p className="text-sm text-gray-600">Description: {scannedProduct.description}</p>
                   )}
                   {scannedProduct.category && (
-                    <p className="text-sm text-gray-600">Category: {scannedProduct.category.name}</p>
+                    <p className="text-sm text-gray-600">Category: {scannedProduct.category?.name || 'N/A'}</p>
                   )}
                   {scannedProduct.size && scannedProduct.size.length > 0 && (
                     <p className="text-sm text-gray-600">Sizes: {scannedProduct.size.join(', ')}</p>
