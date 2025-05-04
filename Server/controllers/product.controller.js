@@ -62,6 +62,7 @@ const createProduct = async (req, res) => {
 
         // Generate numeric barcode (12 digits for EAN-13 compatibility)
         const barcodeNumber = Date.now().toString().slice(-12).padStart(12, '0');
+        const barcodeImage = await generateBarcode(barcodeNumber);
 
         // Create product without barcode initially
         const newProduct = new Product({
@@ -75,17 +76,15 @@ const createProduct = async (req, res) => {
             subCategory,
             images: uploadedImages,
             stock,
-            barcodeNumber
+            barcodeNumber,
+            barcode: barcodeImage
         });
 
         await newProduct.save();
 
         // Generate barcode image using barcodeNumber
-        const barcodeImage = await generateBarcode(barcodeNumber);
 
-        // Update product with barcode image
-        newProduct.barcode = barcodeImage;
-        await newProduct.save();
+        
 
         console.log("Product created:", newProduct);
         res.status(201).json(newProduct);

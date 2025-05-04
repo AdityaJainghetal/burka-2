@@ -53,7 +53,7 @@ const PurchaseScanQRCode = () => {
   const addToCart = async (barcode, quantity) => {
     setCartLoading(true);
     try {
-      console.log("Adding to cart - BarcodeNumber:", barcode, "Quantity:", quantity);
+      console.log("Sending request to add to cart - BarcodeNumber:", barcode, "Quantity:", quantity);
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/cart/addByBarcode`, {
         barcode,
         quantity
