@@ -1,23 +1,24 @@
 const asyncHandler = require("express-async-handler");
-const Product = require("../models/product.model"); // Assuming Product model exists
+const Product = require("../models/product.model");
 const Purchase = require("../models/Purchase.model");
 
-// @desc    Get product by barcode
+// @desc    Get product by barcode number
 // @route   GET /api/purchase/barcode/:barcode
 // @access  Public
 const getProductByBarcode = asyncHandler(async (req, res) => {
   const { barcode } = req.params;
 
   if (!barcode) {
+    console.log("Barcode missing in request");
     res.status(400);
     throw new Error("Barcode is required");
   }
 
-  console.log("Fetching product for barcode:", barcode);
-  const product = await Product.findOne({ barcode });
+  console.log("Fetching product for barcodeNumber:", barcode);
+  const product = await Product.findOne({ barcodeNumber: barcode });
 
   if (!product) {
-    console.log("Product not found for barcode:", barcode);
+    console.log("Product not found for barcodeNumber:", barcode);
     res.status(404);
     throw new Error("Product not found");
   }
@@ -38,11 +39,11 @@ const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
     throw new Error("Barcode is required");
   }
 
-  console.log("Scanning barcode:", barcode, "Quantity:", quantity);
-  const product = await Product.findOne({ barcode });
+  console.log("Scanning barcodeNumber:", barcode, "Quantity:", quantity);
+  const product = await Product.findOne({ barcodeNumber: barcode });
 
   if (!product) {
-    console.log("Product not found for barcode:", barcode);
+    console.log("Product not found for barcodeNumber:", barcode);
     res.status(404);
     throw new Error("Product not found");
   }
@@ -56,12 +57,13 @@ const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
     // Update existing purchase
     const productEntry = purchase.products.find(p => p.product.toString() === product._id.toString());
     productEntry.quantity = (parseInt(productEntry.quantity) || 0) + quantity;
+    purchase.quantity += quantity; // Update top-level quantity
     console.log("Updated purchase quantity:", productEntry.quantity);
   } else {
     // Create new purchase
     purchase = new Purchase({
       products: [{ product: product._id, quantity }],
-      quantity // Top-level quantity for backward compatibility
+      quantity
     });
     console.log("Created new purchase for product:", product._id);
   }

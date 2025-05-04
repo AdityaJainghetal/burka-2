@@ -23,7 +23,7 @@ const PurchaseScanQRCode = () => {
   // Get product by barcode
   const getProductByBarcode = async (barcode) => {
     try {
-      console.log("Fetching product for barcode:", barcode);
+      console.log("Fetching product for barcodeNumber:", barcode);
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/purchase/barcode/${barcode}`);
       console.log("Product response:", response.data);
       return response.data;
@@ -36,7 +36,7 @@ const PurchaseScanQRCode = () => {
   // Update purchase and product stock
   const updateProductQuantity = async (barcode, quantity) => {
     try {
-      console.log("Updating purchase for barcode:", barcode, "Quantity:", quantity);
+      console.log("Updating purchase for barcodeNumber:", barcode, "Quantity:", quantity);
       const response = await axios.put(`${import.meta.env.VITE_API_URL}/purchase/scan`, {
         barcode,
         quantity
@@ -53,7 +53,7 @@ const PurchaseScanQRCode = () => {
   const addToCart = async (barcode, quantity) => {
     setCartLoading(true);
     try {
-      console.log("Adding to cart - Barcode:", barcode, "Quantity:", quantity);
+      console.log("Adding to cart - BarcodeNumber:", barcode, "Quantity:", quantity);
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/cart/addByBarcode`, {
         barcode,
         quantity
@@ -139,7 +139,7 @@ const PurchaseScanQRCode = () => {
         const barcodes = await barcodeDetector.detect(videoRef.current);
         if (barcodes.length > 0) {
           const scannedBarcode = barcodes[0].rawValue.trim();
-          console.log("Detected barcode:", scannedBarcode);
+          console.log("Detected barcodeNumber:", scannedBarcode);
           setBarcode(scannedBarcode);
           handleScannedProduct(scannedBarcode);
         } else if (scanning) {
@@ -155,7 +155,7 @@ const PurchaseScanQRCode = () => {
 
     const handleScannedProduct = async (scannedBarcode) => {
       setLoading(true);
-      console.log("Handling scanned barcode:", scannedBarcode);
+      console.log("Handling scanned barcodeNumber:", scannedBarcode);
       try {
         const productData = await getProductByBarcode(scannedBarcode);
         console.log("Product fetched successfully:", productData);
@@ -263,7 +263,7 @@ const PurchaseScanQRCode = () => {
       return;
     }
 
-    console.log("Submitting manual barcode:", trimmedBarcode);
+    console.log("Submitting manual barcodeNumber:", trimmedBarcode);
     setBarcode(trimmedBarcode);
     setLoading(true);
 
@@ -431,7 +431,17 @@ const PurchaseScanQRCode = () => {
                   <p className="text-lg font-medium">{scannedProduct.name}</p>
                   <p className="text-sm text-gray-600">Price: ₹{scannedProduct.price.toFixed(2)}</p>
                   <p className="text-sm text-gray-600">Available: {scannedProduct.stock} in stock</p>
-                  <p className="text-sm text-gray-600">Barcode: {barcode}</p>
+                  <p className="text-sm text-gray-600">Barcode Number: {barcode}</p>
+                  {scannedProduct.barcode && (
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-600">Barcode Image:</p>
+                      <img 
+                        src={scannedProduct.barcode} 
+                        alt="Barcode" 
+                        className="w-32 h-auto mt-1 border border-gray-200 rounded" 
+                      />
+                    </div>
+                  )}
                   {scannedProduct.description && (
                     <p className="text-sm text-gray-600">Description: {scannedProduct.description}</p>
                   )}
@@ -546,7 +556,7 @@ const PurchaseScanQRCode = () => {
           {/* Scanned Barcode Info */}
           {barcode && !product && !scanning && !showAddToCartModal && (
             <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 text-center text-sm">
-              <span className="font-medium">Scanned Barcode:</span> {barcode}
+              <span className="font-medium">Scanned Barcode Number:</span> {barcode}
             </div>
           )}
         </div>
