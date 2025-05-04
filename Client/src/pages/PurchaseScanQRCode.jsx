@@ -16,16 +16,20 @@ const PurchaseScanQRCode = () => {
   const [quantity, setQuantity] = useState(1);
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
-  const [cartQuantity, setCartQuantity] = useState(1);
+  const [cartQuantity, setCartQuantity] = useState("1"); // Use string for typeable input
+  const [cartQuantityError, setCartQuantityError] = useState(null);
   const [cartLoading, setCartLoading] = useState(false);
 
   // Get product by barcode
   const getProductByBarcode = async (barcode) => {
     try {
+      console.log("Fetching product for barcode:", barcode); // Debug
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/purchase/barcode/${barcode}`);
+      console.log("Product response:", response.data); // Debug
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Product not found");
+      console.error("Error fetching product:", error); // Debug
+      throw new Error(error.response?.data?.message || "Product not found for this barcode");
     }
   };
 
@@ -52,10 +56,11 @@ const PurchaseScanQRCode = () => {
       });
       setShowAddToCartModal(false);
       setScannedProduct(null);
-      setCartQuantity(1);
+      setCartQuantity("1");
       setBarcode(null);
       setProduct(null);
       setPurchaseSuccess(true);
+      setError("Product added to cart successfully!");
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || "Failed to add product to cart");
@@ -73,7 +78,7 @@ const PurchaseScanQRCode = () => {
     const startCamera = async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
+          video: { facingMode: "environment" }
         });
 
         if (videoRef.current) {
@@ -103,9 +108,14 @@ const PurchaseScanQRCode = () => {
       const code = jsQR(imageData.data, canvas.width, canvas.height);
 
       if (code) {
-        const scannedBarcode = code.data;
-        setBarcode(scannedBarcode);
-        handleScannedProduct(scannedBarcode);
+        const scannedBarcode = code.data.trim(); // Trim whitespace
+        if (scannedBarcode) {
+          setBarcode(scannedBarcode);
+          handleScannedProduct(scannedBarcode);
+        } else {
+          setError("Empty barcode detected. Please scan a valid QR code.");
+          setScanning(false);
+        }
       } else {
         animationId = requestAnimationFrame(detectBarcode);
       }
@@ -144,7 +154,8 @@ const PurchaseScanQRCode = () => {
     setPurchaseSuccess(false);
     setScannedProduct(null);
     setShowAddToCartModal(false);
-    setCartQuantity(1);
+    setCartQuantity("1");
+    setCartQuantityError(null);
     setScanning(true);
   };
 
@@ -154,7 +165,7 @@ const PurchaseScanQRCode = () => {
 
   const handlePurchase = async () => {
     if (!product || !barcode) return;
-    
+
     setPurchaseLoading(true);
     try {
       await updateProductQuantity(barcode, quantity);
@@ -169,6 +180,20 @@ const PurchaseScanQRCode = () => {
     }
   };
 
+  const handleQuantityChange = (value) => {
+    setCartQuantity(value);
+    const numValue = parseInt(value, 10);
+    if (!value) {
+      setCartQuantityError("Quantity is required");
+    } else if (isNaN(numValue) || numValue < 1) {
+      setCartQuantityError("Quantity must be at least 1");
+    } else if (numValue > scannedProduct.stock) {
+      setCartQuantityError(`Quantity cannot exceed available stock (${scannedProduct.stock})`);
+    } else {
+      setCartQuantityError(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden">
@@ -180,7 +205,7 @@ const PurchaseScanQRCode = () => {
               <h1 className="text-2xl font-bold">Purchase Scanner</h1>
             </div>
             {scanning && (
-              <button 
+              <button
                 onClick={stopScanning}
                 className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition"
               >
@@ -202,7 +227,7 @@ const PurchaseScanQRCode = () => {
           {purchaseSuccess && (
             <div className="flex items-center bg-green-50 text-green-700 p-3 rounded-lg mb-4 border border-green-200">
               <CheckCircle className="mr-2 flex-shrink-0" />
-              <span>Action completed successfully!</span>
+              <span>{error || "Action completed successfully!"}</span>
             </div>
           )}
         </div>
@@ -212,8 +237,8 @@ const PurchaseScanQRCode = () => {
           {scanning ? (
             <div className="relative">
               <div className="relative aspect-square overflow-hidden rounded-lg border-2 border-blue-400">
-                <video 
-                  ref={videoRef} 
+                <video
+                  ref={videoRef}
                   className="absolute inset-0 w-full h-full object-cover"
                   playsInline
                   muted
@@ -229,7 +254,7 @@ const PurchaseScanQRCode = () => {
                 </div>
               </div>
               <canvas ref={canvasRef} className="hidden" />
-              
+
               <div className="mt-4 text-center text-sm text-gray-500">
                 {loading ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -251,7 +276,7 @@ const PurchaseScanQRCode = () => {
                   <Scan className="h-6 w-6 text-white" />
                 </div>
               </div>
-              
+
               <button
                 onClick={startScanning}
                 className="w-full max-w-xs py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md transition flex items-center justify-center space-x-2"
@@ -269,7 +294,12 @@ const PurchaseScanQRCode = () => {
                 <div className="flex justify-between items-start mb-4">
                   <h2 className="text-xl font-bold">Add to Cart</h2>
                   <button
-                    onClick={() => setShowAddToCartModal(false)}
+                    onClick={() => {
+                      setShowAddToCartModal(false);
+                      setScannedProduct(null);
+                      setCartQuantity("1");
+                      setCartQuantityError(null);
+                    }}
                     className="text-gray-500 hover:text-gray-700"
                   >
                     <X size={24} />
@@ -295,30 +325,39 @@ const PurchaseScanQRCode = () => {
                     Quantity
                   </label>
                   <input
-                    type="number"
-                    min="1"
-                    max={scannedProduct.stock}
+                    type="text"
                     value={cartQuantity}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value, 10);
-                      if (!isNaN(value) && value >= 1 && value <= scannedProduct.stock) {
-                        setCartQuantity(value);
-                      }
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    onChange={(e) => handleQuantityChange(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-md ${
+                      cartQuantityError ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter quantity"
                   />
+                  {cartQuantityError && (
+                    <p className="text-red-500 text-sm mt-1">{cartQuantityError}</p>
+                  )}
                 </div>
                 <div className="flex justify-end gap-3">
                   <button
-                    onClick={() => setShowAddToCartModal(false)}
+                    onClick={() => {
+                      setShowAddToCartModal(false);
+                      setScannedProduct(null);
+                      setCartQuantity("1");
+                      setCartQuantityError(null);
+                    }}
                     className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-md"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={() => addToCart(barcode, cartQuantity)}
+                    onClick={() => {
+                      const numQuantity = parseInt(cartQuantity, 10);
+                      if (!cartQuantityError && numQuantity >= 1 && numQuantity <= scannedProduct.stock) {
+                        addToCart(barcode, numQuantity);
+                      }
+                    }}
                     className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center"
-                    disabled={cartLoading}
+                    disabled={cartLoading || cartQuantityError || !cartQuantity}
                   >
                     {cartLoading ? (
                       <Loader2 size={18} className="mr-2 animate-spin" />
@@ -338,24 +377,24 @@ const PurchaseScanQRCode = () => {
               <div className="bg-gray-50 p-4 border-b">
                 <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
               </div>
-              
+
               <div className="p-4 space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Price:</span>
                   <span className="font-bold text-gray-800">₹{product.price.toFixed(2)}</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Quantity to Add:</span>
                   <div className="flex items-center space-x-2">
-                    <button 
+                    <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
                     >
                       -
                     </button>
                     <span className="w-10 text-center font-medium">{quantity}</span>
-                    <button 
+                    <button
                       onClick={() => setQuantity(quantity + 1)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
                     >
@@ -363,7 +402,7 @@ const PurchaseScanQRCode = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="pt-2">
                   <button
                     onClick={handlePurchase}

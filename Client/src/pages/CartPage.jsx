@@ -138,10 +138,10 @@ const CartPage = () => {
           discountName: vendors.find(v => v._id === selectedVendor)?.firmName || "",
           discountPercentage: discount,
           priceAfterDiscount:
-            item.product.price - (item.product.price * discount) / 100,
+            item.product.price - (item.product.price * discount) / 100
         })),
       totalPrice: subtotal,
-      totalPriceAfterDiscount: total,
+      totalPriceAfterDiscount: total
     };
 
     try {
@@ -151,25 +151,7 @@ const CartPage = () => {
       if (res.data.success) {
         setPaymentSuccess(true);
 
-        // Remove all cart items
-        const deletionPromises = cart
-          .filter(item => item.product)
-          .map(async item => {
-            try {
-              await axios.delete(`${import.meta.env.VITE_API_URL}/cart/remove/${item.product._id}`);
-            } catch (err) {
-              console.error(`Failed to remove product ${item.product._id}:`, err);
-              throw new Error(`Failed to remove ${item.product.name} from cart.`);
-            }
-          });
-
-        try {
-          await Promise.all(deletionPromises);
-        } catch (err) {
-          setError(err.message || "Some items could not be removed from the cart.");
-        }
-
-        // Refresh cart
+        // Refresh cart (cart is cleared by backend)
         await fetchCart();
 
         setTimeout(() => {
