@@ -1,27 +1,41 @@
 const mongoose = require('mongoose');
 
-const purchaseSchema = new mongoose.Schema({
-  products: [{
-    product: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-      required: true
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1
-    }
-  }],
-  quantity: { 
+const productSchema = new mongoose.Schema({
+  barcode: { 
+    type: String, 
+    required: true // Stores barcode image URL
+  },
+  barcodeNumber: { 
+    type: String, 
+    required: true, 
+    unique: true // Stores numeric barcode
+  },
+  name: { 
+    type: String, 
+    required: true 
+  },
+  price: { 
+    type: Number, 
+    required: true 
+  },
+  stock: { 
     type: Number, 
     required: true, 
-    min: 1 
+    min: 0 
   },
-  purchaseDate: { 
-    type: Date, 
-    default: Date.now 
-  }
+  description: String,
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category"
+  },
+  subCategory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Subcategory"
+  },
+  size: [String],
+  color: String,
+  fabric: String,
+  images: [String]
 });
 
-module.exports = mongoose.model('Purchase', purchaseSchema);
+module.exports = mongoose.model('product', productSchema);
