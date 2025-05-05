@@ -88,7 +88,7 @@ const DeliveredOrders = () => {
       const worksheet = XLSX.utils.json_to_sheet(filteredOrders.map(order => ({
         'Order ID': order.formattedId || 'N/A',
         'Vendor': order.orderItems[0]?.discountName?.firmName || 'N/A',
-        'Delivery Date': order.deliveryDetails?.deliveredAt ? new Date(order.deliveryDetails.deliveredAt).toLocaleString() : 'N/A',
+        // 'Delivery Date': order.deliveryDetails?.deliveredAt ? new Date(order.deliveryDetails.deliveredAt).toLocaleString() : 'N/A',
         'Total Amount': order.totalPriceAfterDiscount ? `₹${order.totalPriceAfterDiscount.toFixed(2)}` : '₹0.00',
         'Payment Status': order.paymentStatus ? order.paymentStatus.replace('_', ' ').toUpperCase() : 'N/A',
       })));
@@ -184,17 +184,7 @@ const DeliveredOrders = () => {
       cell: row => <span className="font-medium text-gray-800">{row.orderItems[0]?.discountName?.firmName || 'N/A'}</span>,
       width: '180px',
     },
-    {
-      name: 'Delivery Date',
-      selector: row => row.deliveryDetails?.deliveredAt || '',
-      sortable: true,
-      cell: row => (
-        <span className="text-gray-600">
-          {row.deliveryDetails?.deliveredAt ? new Date(row.deliveryDetails.deliveredAt).toLocaleString() : 'N/A'}
-        </span>
-      ),
-      width: '180px',
-    },
+
     {
       name: 'Total Amount',
       selector: row => row.totalPriceAfterDiscount || 0,
