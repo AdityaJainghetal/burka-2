@@ -6,6 +6,8 @@ const adminLogin = async(req,res)=>{
     console.log(req.body);
     
     try {
+     const all = await AdminModel.find()
+     console.log(all);
      const Admin = await AdminModel.findOne({userid})
      console.log(Admin);
      

@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const DeliverOrder = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { order } = location.state || {};
-  
+
   const [deliveryDetails, setDeliveryDetails] = useState({
     receivedBy: '',
-    remark: ''
+    remark: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +21,7 @@ const DeliverOrder = () => {
     const { name, value } = e.target;
     setDeliveryDetails(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -31,17 +33,24 @@ const DeliverOrder = () => {
     if (!deliveryDetails.receivedBy || !deliveryDetails.remark) {
       setError('Please fill all fields');
       setLoading(false);
+      toast.error('Please fill all fields');
       return;
     }
 
     try {
       await axios.put(`${import.meta.env.VITE_API_URL}/order/${id}/deliver`, {
-        deliveryDetails
+        deliveryDetails: {
+          ...deliveryDetails,
+          deliveredAt: new Date().toISOString(),
+        },
       });
+      toast.success(`Order #${id.slice(-6).toUpperCase()} marked as delivered`);
       navigate('/orders');
     } catch (err) {
       console.error('Failed to deliver order:', err);
-      setError(err.response?.data?.message || 'Failed to deliver order');
+      const errorMessage = err.response?.data?.message || 'Failed to deliver order';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -49,18 +58,26 @@ const DeliverOrder = () => {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Deliver Order #{id.slice(-6).toUpperCase()}</h2>
-      
-      {order && (
-        <div className="mb-4">
-          <p className="font-semibold">Customer: {order.user?.name || 'Guest'}</p>
-          <p>Total: ₹{order.totalPriceAfterDiscount || order.totalPrice}</p>
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">
+        Deliver Order #{id.slice(-6).toUpperCase()}
+      </h2>
+
+      {order ? (
+        <div className="mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
+          <p className="font-semibold text-gray-700">
+            Vendor: {order.orderItems[0]?.discountName?.firmName || 'N/A'}
+          </p>
+          <p className="text-gray-600">
+            Total: ₹{(order.totalPriceAfterDiscount || order.totalPrice || 0).toFixed(2)}
+          </p>
         </div>
+      ) : (
+        <p className="text-red-500 mb-4">Order details not available</p>
       )}
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block text-gray-700 mb-2" htmlFor="receivedBy">
+          <label className="block text-gray-700 mb-2 font-medium" htmlFor="receivedBy">
             Received By
           </label>
           <input
@@ -69,14 +86,14 @@ const DeliverOrder = () => {
             name="receivedBy"
             value={deliveryDetails.receivedBy}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded-md"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter recipient name"
             required
           />
         </div>
 
         <div className="mb-4">
-          <label className="block text-gray-700 mb-2" htmlFor="remark">
+          <label className="block text-gray-700 mb-2 font-medium" htmlFor="remark">
             Delivery Remarks
           </label>
           <textarea
@@ -84,30 +101,58 @@ const DeliverOrder = () => {
             name="remark"
             value={deliveryDetails.remark}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded-md"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows="3"
             placeholder="Any delivery notes or remarks"
             required
           />
         </div>
 
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {error && (
+          <p className="text-red-500 mb-4 text-sm font-medium">{error}</p>
+        )}
 
         <div className="flex justify-end gap-2">
           <button
             type="button"
             onClick={() => navigate('/orders')}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
             disabled={loading}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
             disabled={loading}
           >
-            {loading ? 'Processing...' : 'Confirm Delivery'}
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Processing...
+              </>
+            ) : (
+              'Confirm Delivery'
+            )}
           </button>
         </div>
       </form>

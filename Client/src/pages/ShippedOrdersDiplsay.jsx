@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -6,7 +6,8 @@ import DataTable from 'react-data-table-component';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
+import { useReactToPrint } from 'react-to-print';
 
 const ShippedOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -14,6 +15,9 @@ const ShippedOrders = () => {
   const [searchText, setSearchText] = useState('');
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [resetPaginationToggle, setResetPaginationToggle] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [paymentDetails, setPaymentDetails] = useState([]);
+  const printRef = useRef();
 
   useEffect(() => {
     fetchShippedOrders();
@@ -27,7 +31,7 @@ const ShippedOrders = () => {
         const searchStr = searchText.toLowerCase();
         return (
           (order.formattedId && order.formattedId.toLowerCase().includes(searchStr)) ||
-          (order.shippingDetails?.name && order.shippingDetails.name.toLowerCase().includes(searchStr)) ||
+          (order.orderItems[0]?.discountName?.firmName && order.orderItems[0].discountName.firmName.toLowerCase().includes(searchStr)) ||
           (order.status && order.status.toLowerCase().includes(searchStr)) ||
           (order.totalPriceAfterDiscount && order.totalPriceAfterDiscount.toString().includes(searchStr))
         );
@@ -52,19 +56,35 @@ const ShippedOrders = () => {
     }
   };
 
-  const viewOrderDetails = (orderId) => {
-    console.log('View order:', orderId);
-    toast.info(`Viewing order details for order ${orderId.substring(0, 8)}...`);
+  const fetchPaymentDetails = async (orderId) => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/payments/${orderId}`);
+      setPaymentDetails(res.data.payments || []);
+    } catch (err) {
+      console.error('Failed to fetch payment details:', err);
+      setPaymentDetails([]);
+      toast.error('Failed to fetch payment details');
+    }
+  };
+
+  const viewOrderDetails = async (order) => {
+    setSelectedOrder(order);
+    await fetchPaymentDetails(order._id);
+  };
+
+  const closeModal = () => {
+    setSelectedOrder(null);
+    setPaymentDetails([]);
   };
 
   const markAsDelivered = async (orderId) => {
     try {
       await axios.patch(`${import.meta.env.VITE_API_URL}/order/${orderId}`, {
         status: 'delivered',
-        'deliveryDetails.deliveredAt': new Date().toISOString()
+        'deliveryDetails.deliveredAt': new Date().toISOString(),
       });
       toast.success('Order marked as delivered');
-      fetchShippedOrders(); // Refresh the list
+      fetchShippedOrders();
     } catch (error) {
       console.error('Error updating order status:', error);
       toast.error('Failed to update order status');
@@ -78,57 +98,89 @@ const ShippedOrders = () => {
   };
 
   const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredOrders.map(order => ({
-      'Order ID': order.formattedId,
-      'Customer': order.shippingDetails?.name || 'N/A',
-      'Order Date': order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A',
-      'Shipped Date': order.updatedAt ? new Date(order.updatedAt).toLocaleDateString() : 'N/A',
-      'Total Amount': order.totalPriceAfterDiscount ? `₹${order.totalPriceAfterDiscount.toFixed(2)}` : '₹0.00',
-      'Status': order.status ? order.status.toUpperCase() : 'N/A'
-    })));
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Shipped Orders');
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    saveAs(data, 'shipped_orders.xlsx');
+    try {
+      const worksheet = XLSX.utils.json_to_sheet(filteredOrders.map(order => ({
+        'Order ID': order.formattedId || 'N/A',
+        'Vendor': order.orderItems[0]?.discountName?.firmName || 'N/A',
+        'Order Date': order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A',
+        'Shipped Date': order.updatedAt ? new Date(order.updatedAt).toLocaleDateString() : 'N/A',
+        'Total Amount': order.totalPriceAfterDiscount ? `₹${order.totalPriceAfterDiscount.toFixed(2)}` : '₹0.00',
+        'Status': order.status ? order.status.toUpperCase() : 'N/A',
+      })));
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Shipped Orders');
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      saveAs(data, 'shipped_orders.xlsx');
+      toast.success('Exported shipped orders to Excel');
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      toast.error('Failed to export to Excel');
+    }
   };
 
   const exportToPDF = () => {
-    const doc = new jsPDF();
-    doc.text('Shipped Orders Report', 14, 16);
-    
-    const tableData = filteredOrders.map(order => [
-      order.formattedId || 'N/A',
-      order.shippingDetails?.name || 'N/A',
-      order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A',
-      order.updatedAt ? new Date(order.updatedAt).toLocaleDateString() : 'N/A',
-      order.totalPriceAfterDiscount ? `₹${order.totalPriceAfterDiscount.toFixed(2)}` : '₹0.00',
-      order.status ? order.status.toUpperCase() : 'N/A'
-    ]);
-
-    doc.autoTable({
-      head: [['Order ID', 'Customer', 'Order Date', 'Shipped Date', 'Total Amount', 'Status']],
-      body: tableData,
-      startY: 20,
-      styles: {
-        cellPadding: 2,
-        fontSize: 8,
-        valign: 'middle',
-        halign: 'left'
-      },
-      headStyles: {
-        fillColor: [41, 128, 185],
-        textColor: 255,
-        fontStyle: 'bold'
-      },
-      alternateRowStyles: {
-        fillColor: [245, 245, 245]
-      }
-    });
-
-    doc.save('shipped_orders.pdf');
+    try {
+      const doc = new jsPDF();
+      autoTable(doc, {
+        head: [['Order ID', 'Vendor', 'Order Date', 'Shipped Date', 'Total Amount', 'Status']],
+        body: filteredOrders.map(order => [
+          order.formattedId || 'N/A',
+          order.orderItems[0]?.discountName?.firmName || 'N/A',
+          order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A',
+          order.updatedAt ? new Date(order.updatedAt).toLocaleDateString() : 'N/A',
+          order.totalPriceAfterDiscount ? `₹${order.totalPriceAfterDiscount.toFixed(2)}` : '₹0.00',
+          order.status ? order.status.toUpperCase() : 'N/A',
+        ]),
+        startY: 30,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+          valign: 'middle',
+          halign: 'left',
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245],
+        },
+        columnStyles: {
+          0: { cellWidth: 30 },
+          1: { cellWidth: 50 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 30 },
+          4: { cellWidth: 30 },
+          5: { cellWidth: 20 },
+        },
+      });
+      doc.setFontSize(16);
+      doc.text('Shipped Orders Report', 14, 20);
+      doc.save('shipped_orders.pdf');
+      toast.success('Exported shipped orders to PDF');
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      toast.error('Failed to export to PDF');
+    }
   };
-  
+
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: `Order-${selectedOrder?._id.slice(-6).toUpperCase() || 'Order'}`,
+    pageStyle: `
+      @page { size: auto; margin: 5mm; }
+      @media print {
+        body { -webkit-print-color-adjust: exact; }
+        .no-print { display: none !important; }
+        .print-table { width: 100%; border-collapse: collapse; }
+        .print-table th, .print-table td { border: 1px solid #ddd; padding: 8px; }
+        .print-table th { background-color: #f2f2f2; }
+      }
+    `,
+  });
 
   const columns = [
     {
@@ -136,15 +188,14 @@ const ShippedOrders = () => {
       selector: row => row.formattedId,
       sortable: true,
       cell: row => <span className="font-mono text-sm">{row.formattedId || 'N/A'}</span>,
-      width: '150px'
+      width: '150px',
     },
-    
     {
-      name: 'Customer',
-      selector: (row) => row.orderItems[0]?.discountName?.firmName || 'N/A',
+      name: 'Vendor',
+      selector: row => row.orderItems[0]?.discountName?.firmName || 'N/A',
       sortable: true,
       cell: row => <span className="font-medium text-gray-800">{row.orderItems[0]?.discountName?.firmName || 'N/A'}</span>,
-      width: '180px'
+      width: '180px',
     },
     {
       name: 'Order Date',
@@ -155,7 +206,7 @@ const ShippedOrders = () => {
           {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : 'N/A'}
         </span>
       ),
-      width: '120px'
+      width: '120px',
     },
     {
       name: 'Shipped Date',
@@ -166,7 +217,7 @@ const ShippedOrders = () => {
           {row.updatedAt ? new Date(row.updatedAt).toLocaleDateString() : 'N/A'}
         </span>
       ),
-      width: '120px'
+      width: '120px',
     },
     {
       name: 'Total Amount',
@@ -177,7 +228,7 @@ const ShippedOrders = () => {
           ₹{row.totalPriceAfterDiscount ? row.totalPriceAfterDiscount.toFixed(2) : '0.00'}
         </span>
       ),
-      width: '120px'
+      width: '120px',
     },
     {
       name: 'Status',
@@ -188,9 +239,30 @@ const ShippedOrders = () => {
           {row.status ? row.status.toUpperCase() : 'N/A'}
         </span>
       ),
-      width: '120px'
+      width: '120px',
     },
-    
+    {
+      name: 'Actions',
+      cell: row => (
+        <div className="flex gap-2">
+          <button
+            onClick={() => viewOrderDetails(row)}
+            className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm transition-colors"
+          >
+            View Details
+          </button>
+          <button
+            onClick={() => markAsDelivered(row._id)}
+            className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm transition-colors"
+          >
+            Mark Delivered
+          </button>
+        </div>
+      ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
+    },
   ];
 
   const subHeaderComponent = (
@@ -204,7 +276,7 @@ const ShippedOrders = () => {
           </div>
           <input
             type="text"
-            placeholder="Search by ID, customer, amount..."
+            placeholder="Search by ID, vendor, amount..."
             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             value={searchText}
             onChange={e => setSearchText(e.target.value)}
@@ -216,12 +288,14 @@ const ShippedOrders = () => {
           onClick={exportToExcel}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
         >
-          <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
           Export Excel
         </button>
-        
+        <button
+          onClick={exportToPDF}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        >
+          Export PDF
+        </button>
       </div>
     </div>
   );
@@ -267,10 +341,7 @@ const ShippedOrders = () => {
           </div>
         </div>
 
-{console.log(filteredOrders)};
-
         <div className="px-6 py-4">
-          {subHeaderComponent}
           <DataTable
             columns={columns}
             data={filteredOrders}
@@ -318,12 +389,223 @@ const ShippedOrders = () => {
               rows: {
                 style: {
                   minHeight: '60px',
-                }
-              }
+                },
+              },
             }}
           />
         </div>
       </div>
+
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6" ref={printRef}>
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Order #{selectedOrder.formattedId || selectedOrder._id.slice(-6).toUpperCase()}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {new Date(selectedOrder.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handlePrint}
+                    className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-1.5 transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                      />
+                    </svg>
+                    Print
+                  </button>
+                  <button
+                    onClick={exportToPDF}
+                    className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-1.5 transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    Save PDF
+                  </button>
+                  <button
+                    onClick={closeModal}
+                    className="px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                  <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Vendor Details</h4>
+                  {selectedOrder.orderItems[0]?.discountName ? (
+                    <div className="space-y-3 text-sm">
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Firm Name:</span>
+                        <span>{selectedOrder.orderItems[0].discountName.firmName || 'N/A'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Contact:</span>
+                        <span>{selectedOrder.orderItems[0].discountName.contactName || 'N/A'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Mobile:</span>
+                        <span>{selectedOrder.orderItems[0].discountName.mobile1 || 'N/A'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Email:</span>
+                        <span>{selectedOrder.orderItems[0].discountName.email || 'N/A'}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Address:</span>
+                        <span>
+                          {selectedOrder.orderItems[0].discountName.address || ''},{' '}
+                          {selectedOrder.orderItems[0].discountName.city || ''},{' '}
+                          {selectedOrder.orderItems[0].discountName.state || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No vendor details available</p>
+                  )}
+                </div>
+                <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                  <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Order Summary</h4>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Order Status:</span>
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800`}
+                      >
+                        {(selectedOrder.status || 'shipped').toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subtotal:</span>
+                      <span>₹{selectedOrder.totalPrice?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    {selectedOrder.totalPriceAfterDiscount && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total:</span>
+                        <span className="text-gray-800">
+                          ₹{selectedOrder.totalPriceAfterDiscount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Payment Status:</span>
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          selectedOrder.paymentStatus === 'paid'
+                            ? 'bg-green-100 text-green-800'
+                            : selectedOrder.paymentStatus === 'partially_paid'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
+                        {(selectedOrder.paymentStatus || 'pending').replace('_', ' ').toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {paymentDetails.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Payment History</h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 print-table">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {paymentDetails.map((payment) => (
+                          <tr key={payment._id}>
+                            <td className="px-4 py-3 text-sm text-gray-500">
+                              {payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString() : 'N/A'}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-500">₹{payment.amount?.toFixed(2) || '0.00'}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{payment.paymentMethod || 'N/A'}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{payment.referenceNumber || 'N/A'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+              <div>
+                <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Order Items</h4>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 print-table">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {selectedOrder.orderItems?.map((item, index) => (
+                        <tr key={index}>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                <img
+                                  className="h-10 w-10 rounded object-cover border border-gray-200"
+                                  src={item.productImage || 'https://via.placeholder.com/40'}
+                                  alt={item.productName || 'Product'}
+                                />
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">{item.productName || 'Product'}</div>
+                                <div className="text-sm text-gray-500">{item.size || 'N/A'} | {item.color || 'N/A'}</div>
+                              </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-500">₹{(item.price || 0).toFixed(2)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{item.quantity || 0}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">
+                              ₹{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+      )}
     </div>
   );
 };
