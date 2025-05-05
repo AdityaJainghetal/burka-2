@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 import DataTable from "react-data-table-component";
 import { useNavigate } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import { debounce } from "lodash";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const TodayOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -13,8 +15,8 @@ const TodayOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [paymentDetails, setPaymentDetails] = useState([]);
   const [todaysTotal, setTodaysTotal] = useState({ quantity: 0, price: 0 });
-  const [updatingStatus, setUpdatingStatus] = useState({}); // Track status updates per order
-  const printRef = React.useRef();
+  const [updatingStatus, setUpdatingStatus] = useState({});
+  const printRef = useRef();
   const navigate = useNavigate();
 
   const fetchOrders = useCallback(async () => {
@@ -23,12 +25,12 @@ const TodayOrders = () => {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/order`);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
-      const todaysOrders = res.data.orders.filter(order => {
+
+      const todaysOrders = res.data.orders.filter((order) => {
         const orderDate = new Date(order.createdAt);
         return orderDate >= today;
       });
-      
+
       setOrders(todaysOrders);
       setFilteredOrders(todaysOrders);
       calculateTodaysTotals(todaysOrders);
@@ -42,17 +44,17 @@ const TodayOrders = () => {
   const calculateTodaysTotals = (orders) => {
     let totalQuantity = 0;
     let totalPrice = 0;
-    
-    orders.forEach(order => {
-      order.orderItems?.forEach(item => {
+
+    orders.forEach((order) => {
+      order.orderItems?.forEach((item) => {
         totalQuantity += item.quantity || 0;
         totalPrice += (item.priceAfterDiscount || item.price || 0) * (item.quantity || 0);
       });
     });
-    
+
     setTodaysTotal({
       quantity: totalQuantity,
-      price: totalPrice
+      price: totalPrice,
     });
   };
 
@@ -68,31 +70,30 @@ const TodayOrders = () => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      setUpdatingStatus(prev => ({ ...prev, [orderId]: true }));
+      setUpdatingStatus((prev) => ({ ...prev, [orderId]: true }));
 
-      // Find the complete order object
-      const orderToUpdate = orders.find(order => order._id === orderId);
+      const orderToUpdate = orders.find((order) => order._id === orderId);
 
       if (newStatus === "shipped") {
-        navigate(`/ship-order/${orderId}`, { 
-          state: { order: orderToUpdate } 
+        navigate(`/ship-order/${orderId}`, {
+          state: { order: orderToUpdate },
         });
         return;
       } else if (newStatus === "delivered") {
-        navigate(`/deliver-order/${orderId}`, { 
-          state: { order: orderToUpdate } 
+        navigate(`/deliver-order/${orderId}`, {
+          state: { order: orderToUpdate },
         });
         return;
       } else if (newStatus === "cancelled") {
-        navigate(`/cancel-order/${orderId}`, { 
-          state: { order: orderToUpdate } 
+        navigate(`/cancel-order/${orderId}`, {
+          state: { order: orderToUpdate },
         });
         return;
       }
 
       await axios.put(`${import.meta.env.VITE_API_URL}/order/${orderId}`, { status: newStatus });
-      await fetchOrders(); // Wait for refresh
-      
+      await fetchOrders();
+
       if (selectedOrder?._id === orderId) {
         closeModal();
       }
@@ -100,16 +101,124 @@ const TodayOrders = () => {
       console.error("Failed to update order status:", err);
       alert("Failed to update order status. Please try again.");
     } finally {
-      setUpdatingStatus(prev => ({
+      setUpdatingStatus((prev) => ({
         ...prev,
-        [orderId]: false
+        [orderId]: false,
       }));
     }
   };
-  console.log(filteredOrders,"sdfdse")
+
+  const generatePDF = () => {
+    if (!selectedOrder) return;
+
+    const doc = new jsPDF();
+    const vendor = selectedOrder.orderItems[0]?.discountName;
+
+    // Header
+    doc.setFontSize(18);
+    doc.text("Order Invoice", 14, 20);
+
+    // Company Info
+    doc.setFontSize(10);
+    doc.text("Company Name", 14, 30);
+    doc.text("123 Business Street, City", 14, 36);
+    doc.text("Phone: (123) 456-7890", 14, 42);
+
+    // Vendor Details
+    doc.setFontSize(12);
+    doc.text("Vendor Details:", 14, 54);
+    doc.setFontSize(10);
+    doc.text(vendor?.firmName || "N/A", 14, 62);
+    doc.text(vendor?.contactName || "N/A", 14, 68);
+    doc.text(vendor?.email || "N/A", 14, 74);
+    doc.text(`${vendor?.address || ""}, ${vendor?.city || ""}, ${vendor?.state || ""}`, 14, 80);
+    if (vendor?.mobile1) doc.text(`Mobile: ${vendor.mobile1}`, 14, 86);
+    if (vendor?.whatsapp) doc.text(`WhatsApp: ${vendor.whatsapp}`, 14, 92);
+    if (vendor?.discountPercentage) doc.text(`Discount: ${vendor.discountPercentage}%`, 14, 98);
+
+    // Order Details
+    doc.setFontSize(12);
+    doc.text(`Order #${selectedOrder._id.slice(-6).toUpperCase()}`, 140, 54);
+    doc.setFontSize(10);
+    doc.text(`Date: ${new Date(selectedOrder.createdAt).toLocaleDateString()}`, 140, 62);
+    doc.text(`Status: ${selectedOrder.status.toUpperCase()}`, 140, 68);
+    doc.text(`Payment: ${selectedOrder.paymentStatus.toUpperCase()}`, 140, 74);
+
+    // Items Table
+    const cols = ["Product", "Qty", "Price", "Discount %", "Price After Discount", "Total"];
+    const rows = selectedOrder.orderItems.map((item) => [
+      item.productName,
+      item.quantity,
+      `₹${item.price.toFixed(2)}`,
+      `${item.discountPercentage}%`,
+      `₹${item.priceAfterDiscount.toFixed(2)}`,
+      `₹${(item.priceAfterDiscount * item.quantity).toFixed(2)}`,
+    ]);
+
+    autoTable(doc, {
+      head: [cols],
+      body: rows,
+      startY: 104,
+      theme: "grid",
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [66, 139, 202] },
+      columnStyles: {
+        0: { cellWidth: 50 },
+        1: { cellWidth: 20 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 30 },
+        4: { cellWidth: 30 },
+        5: { cellWidth: 30 },
+      },
+    });
+
+    // Summary
+    let finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.text(`Subtotal: ₹${selectedOrder.totalPrice.toFixed(2)}`, 14, finalY);
+    if (selectedOrder.totalPriceAfterDiscount) {
+      doc.text(`After Discount: ₹${selectedOrder.totalPriceAfterDiscount.toFixed(2)}`, 14, finalY + 6);
+    }
+    doc.text(`Paid: ₹${selectedOrder.paidAmount || 0}`, 14, finalY + 12);
+    doc.text(
+      `Due: ₹${selectedOrder.dueAmount || (selectedOrder.totalPriceAfterDiscount ?? selectedOrder.totalPrice) - (selectedOrder.paidAmount || 0)}`,
+      14,
+      finalY + 18
+    );
+
+    // Payment History
+    if (paymentDetails.length > 0) {
+      finalY += 30;
+      doc.setFontSize(12);
+      doc.text("Payment History", 14, finalY);
+      const paymentCols = ["Date", "Amount", "Method", "Reference"];
+      const paymentRows = paymentDetails.map((payment) => [
+        new Date(payment.paymentDate).toLocaleDateString(),
+        `₹${payment.amount}`,
+        payment.paymentMethod,
+        payment.referenceNumber || "N/A",
+      ]);
+
+      autoTable(doc, {
+        head: [paymentCols],
+        body: paymentRows,
+        startY: finalY + 10,
+        theme: "grid",
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [66, 139, 202] },
+      });
+      finalY = doc.lastAutoTable.finalY;
+    }
+
+    // Footer
+    doc.setFontSize(8);
+    doc.text("Thank you for your business!", 14, finalY + 20);
+    doc.save(`order-${selectedOrder._id.slice(-6)}.pdf`);
+  };
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
+    documentTitle: `Order-${selectedOrder?._id.slice(-6).toUpperCase() || "Order"}`,
     pageStyle: `
       @page { size: auto; margin: 5mm; }
       @media print {
@@ -125,7 +234,7 @@ const TodayOrders = () => {
         .print-table th { background-color: #f2f2f2; }
       }
     `,
-    removeAfterPrint: true
+    removeAfterPrint: true,
   });
 
   const viewOrderDetails = async (order) => {
@@ -142,13 +251,12 @@ const TodayOrders = () => {
     navigate(`/allpayment/${orderId}`);
   };
 
-  // Debounced search
   const handleSearch = debounce((searchValue) => {
     const result = orders.filter((order) => {
       const searchLower = searchValue.toLowerCase();
       return (
         order._id?.toLowerCase().includes(searchLower) ||
-        order.user?.name?.toLowerCase().includes(searchLower) ||
+        order.orderItems[0].discountName?.firmName?.toLowerCase().includes(searchLower) ||
         new Date(order.createdAt).toLocaleDateString().toLowerCase().includes(searchLower) ||
         `${order.totalPriceAfterDiscount ?? order.totalPrice}`.toLowerCase().includes(searchLower) ||
         order.status?.toLowerCase().includes(searchLower) ||
@@ -179,45 +287,45 @@ const TodayOrders = () => {
       selector: (row) => row._id.slice(-6).toUpperCase(),
       sortable: true,
       width: "100px",
-      cell: row => <span className="font-medium text-blue-600">{row._id.slice(-6).toUpperCase()}</span>
+      cell: (row) => <span className="font-medium text-blue-600">{row._id.slice(-6).toUpperCase()}</span>,
     },
     {
       name: "Time",
-      selector: (row) => new Date(row.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      selector: (row) => new Date(row.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       sortable: true,
       width: "90px",
     },
     {
-      name: "Customer",
+      name: "Vendor",
       selector: (row) => row.orderItems[0].discountName?.firmName,
       sortable: true,
       width: "140px",
-      cell: row => <span className="font-medium">{row.orderItems[0].discountName?.firmName || "Guest"}</span>
+      cell: (row) => <span className="font-medium">{row.orderItems[0].discountName?.firmName || "N/A"}</span>,
     },
     {
       name: "Items",
       selector: (row) => row.orderItems?.length || 0,
       sortable: true,
       width: "80px",
-      center: true
+      center: true,
     },
     {
       name: "Total",
       selector: (row) => `₹${(row.totalPriceAfterDiscount ?? row.totalPrice)?.toFixed(2)}`,
       sortable: true,
       width: "120px",
-      cell: row => <span className="font-semibold">₹{(row.totalPriceAfterDiscount ?? row.totalPrice)?.toFixed(2)}</span>
+      cell: (row) => <span className="font-semibold">₹{(row.totalPriceAfterDiscount ?? row.totalPrice)?.toFixed(2)}</span>,
     },
     {
       name: "Due",
       selector: (row) => `₹${row.dueAmount?.toFixed(2) ?? 0}`,
       sortable: true,
       width: "120px",
-      cell: row => (
-        <span className={`font-semibold ${row.dueAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+      cell: (row) => (
+        <span className={`font-semibold ${row.dueAmount > 0 ? "text-red-600" : "text-green-600"}`}>
           ₹{row.dueAmount?.toFixed(2) ?? 0}
         </span>
-      )
+      ),
     },
     {
       name: "Payment",
@@ -230,12 +338,12 @@ const TodayOrders = () => {
                 paymentStatus === "partially_paid" ? "bg-blue-100 text-blue-800" : 
                 "bg-yellow-100 text-yellow-800"}`}
           >
-            {paymentStatus.replace('_', ' ').toUpperCase()}
+            {paymentStatus.replace("_", " ").toUpperCase()}
           </span>
         );
       },
       width: "120px",
-      center: true
+      center: true,
     },
     {
       name: "Status",
@@ -254,7 +362,7 @@ const TodayOrders = () => {
         );
       },
       width: "120px",
-      center: true
+      center: true,
     },
     {
       name: "Actions",
@@ -298,39 +406,36 @@ const TodayOrders = () => {
         </div>
       ),
       width: "150px",
-      center: true
+      center: true,
     },
   ];
 
-  // ... rest of the component remains the same ...
-  // (Keep all the JSX return part exactly as it was in your original TodayOrders component)
-
   return (
-    <div className="max-w-5xl  py-8">
-      {/* Header Section */}
+    <div className="max-w-5xl py-8">
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Today's Orders</h1>
             <p className="text-gray-500 mt-1">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
             </p>
           </div>
-          
           <div className="flex items-center gap-3">
             <button
               onClick={fetchOrders}
               className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 flex items-center gap-2 transition-colors shadow-sm"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                  clipRule="evenodd"
+                />
               </svg>
               Refresh
             </button>
           </div>
         </div>
-
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4 shadow-sm">
             <div className="flex items-center justify-between">
@@ -345,7 +450,6 @@ const TodayOrders = () => {
               </div>
             </div>
           </div>
-
           <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
@@ -359,7 +463,6 @@ const TodayOrders = () => {
               </div>
             </div>
           </div>
-
           <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
@@ -374,8 +477,6 @@ const TodayOrders = () => {
             </div>
           </div>
         </div>
-
-        {/* Search Bar */}
         <div className="mb-6">
           <div className="relative max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -393,8 +494,6 @@ const TodayOrders = () => {
           </div>
         </div>
       </div>
-
-      {/* Orders Table */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
         <DataTable
           columns={columns}
@@ -413,12 +512,16 @@ const TodayOrders = () => {
               </svg>
               <h3 className="mt-2 text-lg font-medium text-gray-900">No orders today</h3>
               <p className="mt-1 text-gray-500">No orders have been placed yet for today.</p>
-              <button 
+              <button
                 onClick={fetchOrders}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                    clipRule="evenodd"
+                  />
                 </svg>
                 Refresh
               </button>
@@ -427,40 +530,53 @@ const TodayOrders = () => {
           customStyles={{
             headCells: {
               style: {
-                fontWeight: 'bold',
-                backgroundColor: '#f9fafb',
-                color: '#374151',
-                fontSize: '0.875rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                paddingLeft: '1rem',
-                paddingRight: '1rem',
+                fontWeight: "bold",
+                backgroundColor: "#f9fafb",
+                color: "#374151",
+                fontSize: "0.875rem",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                paddingLeft: "1rem",
+                paddingRight: "1rem",
               },
             },
             cells: {
               style: {
-                paddingTop: '0.75rem',
-                paddingBottom: '0.75rem',
-                paddingLeft: '1rem',
-                paddingRight: '1rem',
+                paddingTop: "0.75rem",
+                paddingBottom: "0.75rem",
+                paddingLeft: "1rem",
+                paddingRight: "1rem",
               },
             },
             rows: {
               style: {
-                '&:not(:last-of-type)': {
-                  borderBottom: '1px solid #f3f4f6',
+                "&:not(:last-of-type)": {
+                  borderBottom: "1px solid #f3f4f6",
                 },
               },
             },
           }}
         />
       </div>
-
-      {/* Order Details Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="p-6" ref={printRef}>
+              <div className="print-header hidden mb-8">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h1 className="text-2xl font-bold">Company Name</h1>
+                    <p className="text-gray-600">123 Business Street, City</p>
+                    <p className="text-gray-600">Phone: (123) 456-7890</p>
+                  </div>
+                  <div className="print-logo">
+                    <div className="bg-gray-200 w-32 h-32 flex items-center justify-center">
+                      <span className="text-gray-500">Company Logo</span>
+                    </div>
+                  </div>
+                </div>
+                <hr className="my-4 border-t-2 border-gray-300" />
+              </div>
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h3 className="text-xl font-bold text-gray-800">
@@ -471,7 +587,7 @@ const TodayOrders = () => {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  {/* <button
                     onClick={handlePrint}
                     className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-1.5 transition-colors"
                   >
@@ -490,6 +606,26 @@ const TodayOrders = () => {
                       />
                     </svg>
                     Print
+                  </button> */}
+                  <button
+                    onClick={generatePDF}
+                    className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-1.5 transition-colors"
+                    >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    Print
                   </button>
                   <button
                     onClick={closeModal}
@@ -499,40 +635,53 @@ const TodayOrders = () => {
                   </button>
                 </div>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Customer Information */}
                 <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
-                  <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">
-                    Customer Information
-                  </h4>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex">
-                      <span className="font-medium text-gray-600 w-24">Name:</span>
-                      <span>{selectedOrder.user?.name || "Guest"}</span>
+                  <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Vendor Details</h4>
+                  {selectedOrder.orderItems[0]?.discountName ? (
+                    <div className="space-y-3 text-sm">
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Firm Name:</span>
+                        <span>{selectedOrder.orderItems[0].discountName.firmName}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Contact:</span>
+                        <span>{selectedOrder.orderItems[0].discountName.contactName}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Mobile:</span>
+                        <span>{selectedOrder.orderItems[0].discountName.mobile1}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Mobile 2:</span>
+                        <span>{selectedOrder.orderItems[0].discountName.mobile2 || "N/A"}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">WhatsApp:</span>
+                        <span>{selectedOrder.orderItems[0].discountName.whatsapp || "N/A"}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Email:</span>
+                        <span>{selectedOrder.orderItems[0].discountName.email || "N/A"}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Address:</span>
+                        <span>
+                          {selectedOrder.orderItems[0].discountName.address}, {selectedOrder.orderItems[0].discountName.city}, {selectedOrder.orderItems[0].discountName.state}
+                        </span>
+                      </div>
+                      <div className="flex">
+                        <span className="font-medium text-gray-600 w-24">Discount:</span>
+                        <span>{selectedOrder.orderItems[0].discountPercentage}%</span>
+                      </div>
                     </div>
-                    <div className="flex">
-                      <span className="font-medium text-gray-600 w-24">Phone:</span>
-                      <span>{selectedOrder.shippingAddress?.phone || "N/A"}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="font-medium text-gray-600 w-24">Address:</span>
-                      <span>{selectedOrder.shippingAddress?.address || "N/A"}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="font-medium text-gray-600 w-24">City:</span>
-                      <span>
-                        {selectedOrder.shippingAddress?.city || "N/A"},{" "}
-                        {selectedOrder.shippingAddress?.state || "N/A"} -{" "}
-                        {selectedOrder.shippingAddress?.zipCode || "N/A"}
-                      </span>
-                    </div>
-                  </div>
+                  ) : (
+                    <p className="text-gray-500">No vendor details available</p>
+                  )}
                 </div>
-
-                {/* Order Summary */}
                 <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
-                  <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Order Summary</h4>
+                  <h4 className="font-bold text-gray-7
+00 border-b pb-2 mb-3 text-lg">Order Summary</h4>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Order Status:</span>
@@ -574,10 +723,7 @@ const TodayOrders = () => {
                       <span className="text-gray-800">Due Amount:</span>
                       <span className="text-red-600">₹{(selectedOrder.dueAmount || 0).toFixed(2)}</span>
                     </div>
-
-                    <h4 className="font-bold mt-4 mb-2 text-gray-700 border-t pt-3 text-lg">
-                      Payment Information
-                    </h4>
+                    <h4 className="font-bold mt-4 mb-2 text-gray-700 border-t pt-3 text-lg">Payment Information</h4>
                     {paymentDetails.length > 0 ? (
                       <div className="space-y-2">
                         <div className="flex justify-between">
@@ -606,48 +752,28 @@ const TodayOrders = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Payment History */}
               {paymentDetails.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">
-                    Payment History
-                  </h4>
+                  <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Payment History</h4>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Mode
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Amount
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Remark
-                          </th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mode</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remark</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {paymentDetails.map((payment) => (
                           <tr key={payment._id}>
                             <td className="px-4 py-3 text-sm text-gray-500">
-                              {payment.receivingDate
-                                ? new Date(payment.receivingDate).toLocaleDateString()
-                                : "N/A"}
+                              {payment.receivingDate ? new Date(payment.receivingDate).toLocaleDateString() : "N/A"}
                             </td>
-                            <td className="px-4 py-3 text-sm text-gray-500">
-                              {payment.paymentMode || "N/A"}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-500">
-                              ₹{payment.amount?.toLocaleString() || 0}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-500">
-                              {payment.remark || "N/A"}
-                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{payment.paymentMode || "N/A"}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">₹{payment.amount?.toLocaleString() || 0}</td>
+                            <td className="px-4 py-3 text-sm text-gray-500">{payment.remark || "N/A"}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -655,69 +781,61 @@ const TodayOrders = () => {
                   </div>
                 </div>
               )}
-
-              {/* Order Items */}
               <div>
-              <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Order Items</h4>
-                 <div className="overflow-x-auto">
-                   <table className="min-w-full divide-y divide-gray-200">
-                     <thead className="bg-gray-50">
-                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                           Product
-                         </th>
-                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                           Price
-                         </th>
-                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                           Qty
-                         </th>
-                         <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                           Total
-                         </th>
-                       </tr>
-                     </thead>
-                     <tbody className="bg-white divide-y divide-gray-200">
-                       {selectedOrder.orderItems?.map((item, index) => (
+                <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Order Items</h4>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount %</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price After Discount</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {selectedOrder.orderItems?.map((item, index) => (
                         <tr key={index}>
                           <td className="px-4 py-3">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-10 w-10">
                                 <img
                                   className="h-10 w-10 rounded object-cover border border-gray-200"
-                                  src={
-                                    item.productImage ||
-                                    "https://via.placeholder.com/40"
-                                  }
+                                  src={item.productImage || "https://via.placeholder.com/40"}
                                   alt={item.productName || "Product"}
                                 />
                               </div>
                               <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {item.productName || "Product"}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {item.size || "N/A"} | {item.color || "N/A"}
-                                </div>
+                                <div className="text-sm font-medium text-gray-900">{item.productName || "Product"}</div>
+                                <div className="text-sm text-gray-500">{item.size || "N/A"} | {item.color || "N/A"}</div>
                               </div>
                             </div>
                           </td>
+                          <td className="px-4 py-3 text-sm text-gray-500">₹{(item.price || 0).toFixed(2)}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">{item.discountPercentage || 0}%</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">₹{(item.priceAfterDiscount || item.price || 0).toFixed(2)}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">{item.quantity || 0}</td>
                           <td className="px-4 py-3 text-sm text-gray-500">
-                            ₹{(item.priceAfterDiscount || item.price || 0).toFixed(2)}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-500">
-                            {item.quantity || 0}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-500">
-                            ₹
-                            {((item.priceAfterDiscount || item.price || 0) *
-                              (item.quantity || 0)).toFixed(2)}
+                            ₹{((item.priceAfterDiscount || item.price || 0) * (item.quantity || 0)).toFixed(2)}
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
+              </div>
+              <div className="print-footer hidden mt-8">
+                <div className="print-signature">
+                  <div>
+                    <p className="border-t border-gray-400 pt-2">Customer Signature</p>
+                  </div>
+                  <div>
+                    <p className="border-t border-gray-400 pt-2">Company Representative</p>
+                  </div>
+                </div>
+                <div className="mt-4 text-center text-sm text-gray-500">Thank you for your business!</div>
               </div>
             </div>
           </div>

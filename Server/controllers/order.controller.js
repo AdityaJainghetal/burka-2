@@ -1,28 +1,36 @@
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/orderModel');
 const Product = require('../models/product.model');
+const Vendor = require('../models/RegistrationModel');
 const Cart = require('../models/cart.model');
 
-// Create a new order
 const createOrder = asyncHandler(async (req, res) => {
-  const { orderItems, totalPrice, totalPriceAfterDiscount } = req.body;
+  const { orderItems, totalPrice, totalPriceAfterDiscount, vendor } = req.body;
 
   if (
     !orderItems ||
     !Array.isArray(orderItems) ||
     orderItems.length === 0 ||
     totalPrice === undefined ||
-    totalPriceAfterDiscount === undefined
+    totalPriceAfterDiscount === undefined ||
+    !vendor
   ) {
     res.status(400);
-    throw new Error('Missing required fields: orderItems, totalPrice, or totalPriceAfterDiscount');
+    throw new Error('Missing required fields: orderItems, totalPrice, totalPriceAfterDiscount, or vendor');
   }
 
   // Validate order items and stock
   for (const item of orderItems) {
-    if (!item.productId || !item.productName || item.price === undefined || item.quantity === undefined) {
+    if (
+      !item.productId ||
+      !item.productName ||
+      item.price === undefined ||
+      item.quantity === undefined ||
+      item.discountPercentage === undefined ||
+      item.priceAfterDiscount === undefined
+    ) {
       res.status(400);
-      throw new Error('Each order item must include productId, productName, price, and quantity');
+      throw new Error('Each order item must include productId, productName, price, quantity, discountPercentage, and priceAfterDiscount');
     }
 
     const product = await Product.findById(item.productId);
@@ -36,21 +44,50 @@ const createOrder = asyncHandler(async (req, res) => {
     }
   }
 
-  // Ensure totalPrice and totalPriceAfterDiscount are non-negative
+  // Validate vendor
+  const vendorData = await Vendor.findById(vendor);
+  if (!vendorData) {
+    res.status(404);
+    throw new Error(`Vendor not found: ${vendor}`);
+  }
+
+  // Validate totals
   if (totalPrice < 0 || totalPriceAfterDiscount < 0) {
     res.status(400);
     throw new Error('Total prices cannot be negative');
   }
 
+  if (totalPriceAfterDiscount > totalPrice) {
+    res.status(400);
+    throw new Error('Discounted total cannot be higher than original total');
+  }
+
   // Create the order
   const order = new Order({
-    orderItems,
+    orderItems: orderItems.map(item => ({
+      ...item,
+      discountName: {
+        _id: vendorData._id,
+        firmName: vendorData.firmName,
+        contactName: vendorData.contactName,
+        mobile1: vendorData.mobile1,
+        mobile2: vendorData.mobile2,
+        whatsapp: vendorData.whatsapp,
+        email: vendorData.email,
+        address: vendorData.address,
+        city: vendorData.city,
+        state: vendorData.state,
+        discount: vendorData.discount
+      }
+    })),
     totalPrice,
     totalPriceAfterDiscount,
     dueAmount: totalPriceAfterDiscount,
     paymentStatus: 'pending',
-    status: 'pending'
+    status: 'pending',
+    vendor
   });
+
   const savedOrder = await order.save();
 
   // Update product stock

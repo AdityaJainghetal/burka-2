@@ -39,7 +39,7 @@ import PaymentDetail from "./pages/Paymentdetail";
 import PurchaseScanQRCode from "./pages/PurchaseScanQRCode";
 import AdminLogin from "./pages/AdminLogin";
 import { useState } from "react";
-import TodayOrders from "./pages/Report";
+import TodayOrders from "./pages/TodayOrders";
 import Dashboard from "./pages/Dashboard";
 import DeliverOrder from "./pages/Dispacthed";
 import ShippingModal from "./pages/ShippedOrder";

@@ -72,8 +72,20 @@ const CartPage = () => {
 
   const generatePDF = () => {
     const doc = new jsPDF();
+    const vendor = vendors.find(v => v._id === selectedVendor);
+    
+    // Add header
     doc.setFontSize(18);
     doc.text("Invoice", 10, 10);
+    
+    // Add vendor details
+    doc.setFontSize(12);
+    doc.text("Vendor Details:", 10, 20);
+    doc.setFontSize(10);
+    doc.text(vendor?.firmName || "N/A", 10, 28);
+    doc.text(vendor?.contactName || "N/A", 10, 34);
+    doc.text(vendor?.email || "N/A", 10, 40);
+    doc.text(`${vendor?.address || ""}, ${vendor?.city || ""}, ${vendor?.state || ""}`, 10, 46);
 
     const cols = ["Product", "Price", "Qty", "Subtotal"];
     const rows = cart
@@ -85,18 +97,26 @@ const CartPage = () => {
         `₹${(item.product.price * editedQuantities[item._id]).toFixed(2)}`
       ]);
 
-    autoTable(doc, { head: [cols], body: rows, startY: 20 });
+    autoTable(doc, { 
+      head: [cols], 
+      body: rows, 
+      startY: 54,
+      theme: 'grid',
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [66, 139, 202] }
+    });
+    
     const startY = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.text(`Subtotal: ₹${subtotal.toFixed(2)}`, 10, startY);
     doc.text(
       `Discount (${discount}%): ₹${discountAmount.toFixed(2)}`,
       10,
-      startY + 10
+      startY + 8
     );
-    doc.setFontSize(14);
-    doc.text(`Total: ₹${total.toFixed(2)}`, 10, startY + 20);
-    doc.save("invoice.pdf");
+    doc.setFontSize(12);
+    doc.text(`Total: ₹${total.toFixed(2)}`, 10, startY + 18);
+    doc.save(`invoice-${Date.now()}.pdf`);
   };
 
   const handleQuantityChange = (id, qty) => {
@@ -126,6 +146,8 @@ const CartPage = () => {
     setProcessingPayment(true);
     setError(null);
 
+    const vendor = vendors.find(v => v._id === selectedVendor);
+    
     const payload = {
       orderItems: cart
         .filter(item => item.product)
@@ -135,25 +157,34 @@ const CartPage = () => {
           price: item.product.price,
           quantity: editedQuantities[item._id],
           productImage: item.product.images[0] || "",
-          discountName: vendors.find(v => v._id === selectedVendor)?.firmName || "",
+          discountName: {
+            _id: vendor?._id || "",
+            firmName: vendor?.firmName || "",
+            contactName: vendor?.contactName || "",
+            mobile1: vendor?.mobile1 || "",
+            mobile2: vendor?.mobile2 || "",
+            whatsapp: vendor?.whatsapp || "",
+            email: vendor?.email || "",
+            address: vendor?.address || "",
+            city: vendor?.city || "",
+            state: vendor?.state || "",
+            discount: vendor?.discount || 0
+          },
           discountPercentage: discount,
           priceAfterDiscount:
             item.product.price - (item.product.price * discount) / 100
         })),
       totalPrice: subtotal,
-      totalPriceAfterDiscount: total
+      totalPriceAfterDiscount: total,
+      vendor: selectedVendor
     };
 
     try {
-      // Create order
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/order`, payload);
 
       if (res.data.success) {
         setPaymentSuccess(true);
-
-        // Refresh cart (cart is cleared by backend)
         await fetchCart();
-
         setTimeout(() => {
           closeModal();
           setCheckoutDone(true);
@@ -243,7 +274,7 @@ const CartPage = () => {
                       ₹{(item.product.price * editedQuantities[item._id]).toFixed(2)}
                     </p>
                     <button
-                      onClick={() => handleDelete(item.product._id)}
+                      onClick={() => handleDelete(item._id)}
                       disabled={itemsBeingDeleted[item._id]}
                       className="mt-2 px-3 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100 disabled:opacity-50"
                     >
@@ -266,7 +297,7 @@ const CartPage = () => {
                 <option value="">Select a vendor</option>
                 {vendors.map(v => (
                   <option key={v._id} value={v._id}>
-                    {v.firmName}
+                    {v.firmName} ({v.contactName})
                   </option>
                 ))}
               </select>
@@ -287,20 +318,18 @@ const CartPage = () => {
 
             <div className="flex justify-between py-1">
               <span>Subtotal</span>
-              <span>₹{subtotal.toFixed(2) === "NaN" ? 0 : subtotal.toFixed(2)}</span>
+              <span>₹{subtotal.toFixed(2)}</span>
             </div>
             {discount > 0 && (
               <div className="flex justify-between py-1">
                 <span>Discount</span>
-                <span>
-                  -₹{discountAmount.toFixed(2) === "NaN" ? 0 : discountAmount.toFixed(2)}
-                </span>
+                <span>-₹{discountAmount.toFixed(2)}</span>
               </div>
             )}
             <hr className="my-2" />
             <div className="flex justify-between py-1 font-bold text-lg">
               <span>Total</span>
-              <span>₹{total.toFixed(2) === "NaN" ? 0 : total.toFixed(2)}</span>
+              <span>₹{total.toFixed(2)}</span>
             </div>
 
             <div className="mt-4 flex gap-2">

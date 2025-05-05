@@ -1,13 +1,13 @@
-
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import DataTable from "react-data-table-component";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useReactToPrint } from "react-to-print";
 import { debounce } from "lodash";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Orders = () => {
-  // State management
   const [state, setState] = useState({
     orders: [],
     filteredOrders: [],
@@ -17,14 +17,13 @@ const Orders = () => {
     selectedOrder: null,
     paymentDetails: [],
     paymentDetailsLoading: false,
-    updatingStatus: {} // Track status updates per order
+    updatingStatus: {}
   });
 
   const printRef = React.useRef();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Memoized fetch function
   const fetchOrders = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
@@ -45,7 +44,6 @@ const Orders = () => {
     }
   }, []);
 
-  // Payment details fetch with loading state
   const fetchPaymentDetails = async (orderId) => {
     try {
       setState(prev => ({ ...prev, paymentDetailsLoading: true }));
@@ -65,7 +63,6 @@ const Orders = () => {
     }
   };
 
-  // Enhanced status update with loading state
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
       setState(prev => ({
@@ -73,7 +70,6 @@ const Orders = () => {
         updatingStatus: { ...prev.updatingStatus, [orderId]: true }
       }));
 
-      // Find the complete order object
       const orderToUpdate = state.orders.find(order => order._id === orderId);
 
       if (newStatus === "shipped") {
@@ -94,7 +90,7 @@ const Orders = () => {
       }
 
       await axios.put(`${import.meta.env.VITE_API_URL}/order/${orderId}`, { status: newStatus });
-      await fetchOrders(); // Wait for refresh
+      await fetchOrders();
       
       if (state.selectedOrder?._id === orderId) {
         closeModal();
@@ -110,13 +106,12 @@ const Orders = () => {
     }
   };
 
-  // Debounced search
   const handleSearch = debounce((searchValue) => {
     const result = state.orders.filter((order) => {
       const searchLower = searchValue.toLowerCase();
       return (
         order._id?.toLowerCase().includes(searchLower) ||
-        (order.user?.name?.toLowerCase().includes(searchLower)) ||
+        (order.orderItems[0]?.discountName?.firmName?.toLowerCase().includes(searchLower)) ||
         new Date(order.createdAt).toLocaleDateString().toLowerCase().includes(searchLower) ||
         `${order.totalPriceAfterDiscount ?? order.totalPrice}`.toLowerCase().includes(searchLower) ||
         order.status?.toLowerCase().includes(searchLower) ||
@@ -126,7 +121,111 @@ const Orders = () => {
     setState(prev => ({ ...prev, filteredOrders: result }));
   }, 300);
 
-  // Print handler
+  const generatePDF = () => {
+    if (!state.selectedOrder) return;
+
+    const doc = new jsPDF();
+    const vendor = state.selectedOrder.orderItems[0]?.discountName;
+
+    // Header
+    doc.setFontSize(18);
+    doc.text("Order Invoice", 14, 20);
+
+    // Company Info
+    doc.setFontSize(10);
+    doc.text("Company Name", 14, 30);
+    doc.text("123 Business Street, City", 14, 36);
+    doc.text("Phone: (123) 456-7890", 14, 42);
+
+    // Vendor Details
+    doc.setFontSize(12);
+    doc.text("Vendor Details:", 14, 54);
+    doc.setFontSize(10);
+    doc.text(vendor?.firmName || "N/A", 14, 62);
+    doc.text(vendor?.contactName || "N/A", 14, 68);
+    doc.text(vendor?.email || "N/A", 14, 74);
+    doc.text(`${vendor?.address || ""}, ${vendor?.city || ""}, ${vendor?.state || ""}`, 14, 80);
+    if (vendor?.mobile1) doc.text(`Mobile: ${vendor.mobile1}`, 14, 86);
+    if (vendor?.whatsapp) doc.text(`WhatsApp: ${vendor.whatsapp}`, 14, 92);
+
+    // Order Details
+    doc.setFontSize(12);
+    doc.text(`Order #${state.selectedOrder._id.slice(-6).toUpperCase()}`, 140, 54);
+    doc.setFontSize(10);
+    doc.text(`Date: ${new Date(state.selectedOrder.createdAt).toLocaleDateString()}`, 140, 62);
+    doc.text(`Status: ${state.selectedOrder.status.toUpperCase()}`, 140, 68);
+    doc.text(`Payment: ${state.selectedOrder.paymentStatus.toUpperCase()}`, 140, 74);
+
+    // Items Table
+    const cols = ["Product", "Qty", "Price", "Discount %", "Price After Discount", "Total"];
+    const rows = state.selectedOrder.orderItems.map(item => [
+      item.productName,
+      item.quantity,
+      `₹${item.price.toFixed(2)}`,
+      `${item.discountPercentage}%`,
+      `₹${item.priceAfterDiscount.toFixed(2)}`,
+      `₹${(item.priceAfterDiscount * item.quantity).toFixed(2)}`
+    ]);
+
+    autoTable(doc, {
+      head: [cols],
+      body: rows,
+      startY: 100,
+      theme: 'grid',
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [66, 139, 202] },
+      columnStyles: {
+        0: { cellWidth: 50 },
+        1: { cellWidth: 20 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 30 },
+        4: { cellWidth: 30 },
+        5: { cellWidth: 30 }
+      }
+    });
+
+    // Summary
+    let finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.text(`Subtotal: ₹${state.selectedOrder.totalPrice.toFixed(2)}`, 14, finalY);
+    if (state.selectedOrder.totalPriceAfterDiscount) {
+      doc.text(`After Discount: ₹${state.selectedOrder.totalPriceAfterDiscount.toFixed(2)}`, 14, finalY + 6);
+    }
+    doc.text(`Paid: ₹${state.selectedOrder.paidAmount || 0}`, 14, finalY + 12);
+    doc.text(`Due: ₹${state.selectedOrder.dueAmount || 
+      (state.selectedOrder.totalPriceAfterDiscount ?? state.selectedOrder.totalPrice) - 
+      (state.selectedOrder.paidAmount || 0)}`, 14, finalY + 18);
+
+    // Payment History
+    if (state.paymentDetails.length > 0) {
+      finalY += 30;
+      doc.setFontSize(12);
+      doc.text("Payment History", 14, finalY);
+      const paymentCols = ["Date", "Amount", "Method", "Reference"];
+      const paymentRows = state.paymentDetails.map(payment => [
+        new Date(payment.paymentDate).toLocaleDateString(),
+        `₹${payment.amount}`,
+        payment.paymentMethod,
+        payment.referenceNumber || "N/A"
+      ]);
+
+      autoTable(doc, {
+        head: [paymentCols],
+        body: paymentRows,
+        startY: finalY + 10,
+        theme: 'grid',
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [66, 139, 202] }
+      });
+      finalY = doc.lastAutoTable.finalY;
+    }
+
+    // Footer
+    doc.setFontSize(8);
+    doc.text("Thank you for your business!", 14, finalY + 20);
+    doc.save(`order-${state.selectedOrder._id.slice(-6)}.pdf`);
+  };
+
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
     pageStyle: `
@@ -147,7 +246,6 @@ const Orders = () => {
     removeAfterPrint: true
   });
 
-  // View order details
   const viewOrderDetails = async (order) => {
     setState(prev => ({ ...prev, selectedOrder: order }));
     await fetchPaymentDetails(order._id);
@@ -165,7 +263,6 @@ const Orders = () => {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Columns definition
   const columns = [
     {
       name: "Order ID",
@@ -180,8 +277,8 @@ const Orders = () => {
       width: "120px",
     },
     {
-      name: "Customer",
-      selector: (row) => row.orderItems[0].discountName?.firmName || "Guest",
+      name: "Vendor",
+      selector: (row) => row.orderItems[0].discountName?.firmName || "N/A",
       sortable: true,
       width: "150px",
     },
@@ -247,7 +344,6 @@ const Orders = () => {
             disabled={state.updatingStatus[row._id]}
           >
             <option value="pending">Pending</option>
-            {/* <option value="processing">Processing</option> */}
             <option value="shipped">Shipped</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
@@ -277,11 +373,11 @@ const Orders = () => {
         <button
           onClick={() => {
             viewOrderDetails(row);
-            setTimeout(handlePrint, 500);
+            setTimeout(() => generatePDF(), 500);
           }}
           className="px-3 py-1 bg-purple-50 text-purple-600 text-xs rounded hover:bg-purple-100"
         >
-          Print
+          Print PDF
         </button>
       ),
       width: "100px",
@@ -289,8 +385,7 @@ const Orders = () => {
   ];
 
   return (
-    <div className="max-w-5xl  py-8">
-      {/* Header and search */}
+    <div className="max-w-5xl py-8 mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Orders Management</h2>
         <div className="flex gap-2">
@@ -323,7 +418,6 @@ const Orders = () => {
         </div>
       </div>
 
-      {/* Error message */}
       {state.error && (
         <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
           {state.error}
@@ -335,9 +429,7 @@ const Orders = () => {
           </button>
         </div>
       )}
-{/* {console.log(state.filteredOrders,)} */}
-      {/* DataTable */}
-        {console.log(state.filteredOrders)}
+
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <DataTable
           columns={columns}
@@ -356,94 +448,87 @@ const Orders = () => {
           }
         />
       </div>
-      {console.log(state)}
-      {/* Order Details Modal */}
+
       {state.selectedOrder && (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6" ref={printRef}>
-          {/* Print Header - only visible when printing */}
-          <div className="print-header hidden mb-8">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-bold">Company Name</h1>
-                <p className="text-gray-600">123 Business Street, City</p>
-                <p className="text-gray-600">Phone: (123) 456-7890</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6" ref={printRef}>
+              <div className="print-header hidden mb-8">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h1 className="text-2xl font-bold">Company Name</h1>
+                    <p className="text-gray-600">123 Business Street, City</p>
+                    <p className="text-gray-600">Phone: (123) 456-7890</p>
+                  </div>
+                  <div className="print-logo">
+                    <div className="bg-gray-200 w-32 h-32 flex items-center justify-center">
+                      <span className="text-gray-500">Company Logo</span>
+                    </div>
+                  </div>
+                </div>
+                <hr className="my-4 border-t-2 border-gray-300" />
               </div>
-              <div className="print-logo">
-                {/* Replace with your logo image */}
-                <div className="bg-gray-200 w-32 h-32 flex items-center justify-center">
-                  <span className="text-gray-500">Company Logo</span>
+
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-lg font-bold">Order #{state.selectedOrder._id.slice(-6).toUpperCase()}</h3>
+                  <p className="text-sm text-gray-500">
+                    Date: {new Date(state.selectedOrder.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="nicest-right">
+                  <p className="font-semibold">Status: 
+                    <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      ${state.selectedOrder.status === "delivered" ? "bg-green-100 text-green-800" : 
+                        state.selectedOrder.status === "processing" || state.selectedOrder.status === "shipped" ? "bg-blue-100 text-blue-800" : 
+                        state.selectedOrder.status === "cancelled" ? "bg-red-100 text-red-800" : 
+                        "bg-yellow-100 text-yellow-800"}`}>
+                      {(state.selectedOrder.status || "pending").toUpperCase()}
+                    </span>
+                  </p>
+                  <p className="font-semibold">Payment: 
+                    <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      ${state.selectedOrder.paymentStatus === "paid" ? "bg-green-100 text-green-800" : 
+                        state.selectedOrder.paymentStatus === "partially_paid" ? "bg-blue-100 text-blue-800" : 
+                        "bg-yellow-100 text-yellow-800"}`}>
+                      {(state.selectedOrder.paymentStatus || "pending").toUpperCase()}
+                    </span>
+                  </p>
                 </div>
               </div>
-            </div>
-            <hr className="my-4 border-t-2 border-gray-300" />
-          </div>
 
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-lg font-bold">Order #{state.selectedOrder._id.slice(-6).toUpperCase()}</h3>
-              <p className="text-sm text-gray-500">
-                Date: {new Date(state.selectedOrder.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="font-semibold">Status: 
-                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                  ${state.selectedOrder.status === "delivered" ? "bg-green-100 text-green-800" : 
-                    state.selectedOrder.status === "processing" || state.selectedOrder.status === "shipped" ? "bg-blue-100 text-blue-800" : 
-                    state.selectedOrder.status === "cancelled" ? "bg-red-100 text-red-800" : 
-                    "bg-yellow-100 text-yellow-800"}`}>
-                  {(state.selectedOrder.status || "pending").toUpperCase()}
-                </span>
-              </p>
-              <p className="font-semibold">Payment: 
-                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                  ${state.selectedOrder.paymentStatus === "paid" ? "bg-green-100 text-green-800" : 
-                    state.selectedOrder.paymentStatus === "partially_paid" ? "bg-blue-100 text-blue-800" : 
-                    "bg-yellow-100 text-yellow-800"}`}>
-                  {(state.selectedOrder.paymentStatus || "pending").toUpperCase()}
-                </span>
-              </p>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-bold mb-2">Vendor Details</h4>
+                  {state.selectedOrder.orderItems[0]?.discountName ? (
+                    <>
+                      <p><span className="font-semibold">Firm Name:</span> {state.selectedOrder.orderItems[0].discountName.firmName}</p>
+                      <p><span className="font-semibold">Contact Person:</span> {state.selectedOrder.orderItems[0].discountName.contactName}</p>
+                      <p><span className="font-semibold">Mobile:</span> {state.selectedOrder.orderItems[0].discountName.mobile1}</p>
+                      <p><span className="font-semibold">Mobile 2:</span> {state.selectedOrder.orderItems[0].discountName.mobile2 || "N/A"}</p>
+                      <p><span className="font-semibold">WhatsApp:</span> {state.selectedOrder.orderItems[0].discountName.whatsapp || "N/A"}</p>
+                      <p><span className="font-semibold">Email:</span> {state.selectedOrder.orderItems[0].discountName.email || "N/A"}</p>
+                      <p><span className="font-semibold">Address:</span> {state.selectedOrder.orderItems[0].discountName.address}, {state.selectedOrder.orderItems[0].discountName.city}, {state.selectedOrder.orderItems[0].discountName.state}</p>
+                      <p><span className="font-semibold">Discount:</span> {state.selectedOrder.orderItems[0].discountPercentage}%</p>
+                    </>
+                  ) : (
+                    <p>No vendor details available</p>
+                  )}
+                </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="border rounded-lg p-4">
-              <h4 className="font-bold mb-2">Customer Details</h4>
-              {state.selectedOrder.orderItems[0]?.discountName ? (
-                <>
-                  <p><span className="font-semibold">Firm Name:</span> {state.selectedOrder.orderItems[0].discountName.firmName}</p>
-                  <p><span className="font-semibold">Contact Person:</span> {state.selectedOrder.orderItems[0].discountName.contactName}</p>
-                  <p><span className="font-semibold">Mobile 1:</span> {state.selectedOrder.orderItems[0].discountName.mobile1}</p>
-                  <p><span className="font-semibold">Mobile 2:</span> {state.selectedOrder.orderItems[0].discountName.mobile2 || "N/A"}</p>
-                  <p><span className="font-semibold">WhatsApp:</span> {state.selectedOrder.orderItems[0].discountName.whatsapp || "N/A"}</p>
-                  <p><span className="font-semibold">Email:</span> {state.selectedOrder.orderItems[0].discountName.email || "N/A"}</p>
-                  <p><span className="font-semibold">Address:</span> {state.selectedOrder.orderItems[0].discountName.address}, {state.selectedOrder.orderItems[0].discountName.city}, {state.selectedOrder.orderItems[0].discountName.state}</p>
-                </>
-              ) : (
-                <>
-                  <p><span className="font-semibold">Name:</span> Guest</p>
-                  <p><span className="font-semibold">Phone:</span> {state.selectedOrder.user?.phone || "N/A"}</p>
-                  <p><span className="font-semibold">Email:</span> {state.selectedOrder.user?.email || "N/A"}</p>
-                </>
-              )}
-            </div>
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-bold mb-2">Order Summary</h4>
+                  <p><span className="font-semibold">Subtotal:</span> ₹{state.selectedOrder.totalPrice.toFixed(2)}</p>
+                  {state.selectedOrder.totalPriceAfterDiscount && (
+                    <p><span className="font-semibold">After Discount:</span> ₹{state.selectedOrder.totalPriceAfterDiscount.toFixed(2)}</p>
+                  )}
+                  <p><span className="font-semibold">Paid Amount:</span> ₹{(state.selectedOrder.paidAmount || 0).toFixed(2)}</p>
+                  <p><span className="font-semibold">Due Amount:</span> ₹{(state.selectedOrder.dueAmount || 
+                    (state.selectedOrder.totalPriceAfterDiscount ?? state.selectedOrder.totalPrice) - 
+                    (state.selectedOrder.paidAmount || 0)).toFixed(2)}</p>
+                </div>
+              </div>
 
-            <div className="border rounded-lg p-4">
-              <h4 className="font-bold mb-2">Order Summary</h4>
-              <p><span className="font-semibold">Total:</span> ₹{state.selectedOrder.totalPrice}</p>
-              {state.selectedOrder.totalPriceAfterDiscount && (
-                <p><span className="font-semibold">After Discount:</span> ₹{state.selectedOrder.totalPriceAfterDiscount}</p>
-              )}
-              <p><span className="font-semibold">Paid Amount:</span> ₹{state.selectedOrder.paidAmount || 0}</p>
-              <p><span className="font-semibold">Due Amount:</span> ₹{state.selectedOrder.dueAmount || 
-                (state.selectedOrder.totalPriceAfterDiscount ?? state.selectedOrder.totalPrice) - (state.selectedOrder.paidAmount || 0)}</p>
-            </div>
-          </div>
-
-
-            
               <div className="mb-6">
                 <h4 className="font-bold mb-2">Order Items</h4>
                 <div className="overflow-x-auto">
@@ -453,6 +538,8 @@ const Orders = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount %</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price After Discount</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                       </tr>
                     </thead>
@@ -461,10 +548,10 @@ const Orders = () => {
                         <tr key={index}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {item.productName}
-                            {item.image && (
+                            {item.productImage && (
                               <div className="print-photo hidden mt-2">
                                 <img 
-                                  src={item.image} 
+                                  src={item.productImage} 
                                   alt={item.productName} 
                                   className="max-w-xs border border-gray-300"
                                 />
@@ -475,10 +562,16 @@ const Orders = () => {
                             {item.quantity}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ₹{item.price}
+                            ₹{item.price.toFixed(2)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ₹{item.price * item.quantity}
+                            {item.discountPercentage}%
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ₹{item.priceAfterDiscount.toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ₹{(item.priceAfterDiscount * item.quantity).toFixed(2)}
                           </td>
                         </tr>
                       ))}
@@ -514,7 +607,7 @@ const Orders = () => {
                               {new Date(payment.paymentDate).toLocaleDateString()}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              ₹{payment.amount}
+                              ₹{payment.amount.toFixed(2)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {payment.paymentMethod}
@@ -545,7 +638,6 @@ const Orders = () => {
               </div>
             </div>
             
-            {/* Action buttons outside print area */}
             <div className="no-print p-4 border-t border-gray-200 flex justify-between">
               <button
                 onClick={closeModal}
@@ -561,13 +653,13 @@ const Orders = () => {
                   {state.selectedOrder.paymentStatus === "paid" ? "View Payments" : "Add Payment"}
                 </button>
                 <button
-                  onClick={handlePrint}
+                  onClick={generatePDF}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
-                  Print
+                  Print PDF
                 </button>
               </div>
             </div>
