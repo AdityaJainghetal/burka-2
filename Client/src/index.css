@@ -17,6 +17,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+
+body{
+  overflow-x: hidden;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -72,4 +77,22 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+span{
+  color: black !important;
+}
+
+p{
+  color: black;
+}
+
+button{
+  color: #646cff !important;
+}
+
+.buttons{
+  color: #646cff !important;
+}
+
+
 

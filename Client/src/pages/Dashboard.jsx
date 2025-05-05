@@ -18,21 +18,21 @@ const Dashboard = () => {
       const allOrdersRes = await axios.get(`${import.meta.env.VITE_API_URL}/order`);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       // Filter today's orders
       const todaysOrders = allOrdersRes.data.orders.filter(order => {
         const orderDate = new Date(order.createdAt);
         return orderDate >= today;
       });
-      
+
       // Fetch shipped orders
       const shippedRes = await axios.get(`${import.meta.env.VITE_API_URL}/order/status/shipped`);
       const shippedOrders = shippedRes.data.orders || [];
-      
+
       // Fetch delivered orders
       const deliveredRes = await axios.get(`${import.meta.env.VITE_API_URL}/order/status/delivered`);
       const deliveredOrders = deliveredRes.data.orders || [];
-      
+
       setOrders(allOrdersRes.data.orders);
       setFilteredOrders(todaysOrders);
       setTotalOrdersCount(allOrdersRes.data.orders.length);
@@ -52,13 +52,13 @@ const Dashboard = () => {
 
   const calculateTodaysTotals = (orders) => {
     let totalPrice = 0;
-    
+
     orders.forEach(order => {
       order.orderItems?.forEach(item => {
         totalPrice += (item.priceAfterDiscount || item.price || 0) * (item.quantity || 0);
       });
     });
-    
+
     setTodaysTotal({
       count: orders.length,
       price: totalPrice
@@ -67,31 +67,31 @@ const Dashboard = () => {
 
   // Stats data
   const stats = [
-    { 
-      title: "New Orders", 
-      value: todaysTotal.count, 
-      info: "Today's orders count", 
+    {
+      title: "New Orders",
+      value: todaysTotal.count,
+      info: "Today's orders count",
       color: "bg-blue-100 text-blue-800",
       onClick: () => navigate("/todayorder")
     },
-    { 
-      title: "Total Order", 
-      value: totalOrdersCount, 
-      info: "All orders count", 
-      color: "bg-green-100 text-green-800", 
+    {
+      title: "Total Order",
+      value: totalOrdersCount,
+      info: "All orders count",
+      color: "bg-green-100 text-green-800",
       onClick: () => navigate("/orders")
     },
-    { 
-      title: "Dispatched", 
-      value: canceledCount, 
-      info: "Total shipped orders", 
+    {
+      title: "Dispatched",
+      value: canceledCount,
+      info: "Total shipped orders",
       color: "bg-purple-100 text-purple-800",
       onClick: () => navigate("/shippedorderdisplay")
     },
-    { 
-      title: "Delivered", 
+    {
+      title: "Delivered",
       value: deliveredCount,
-      info: "Total delivered orders", 
+      info: "Total delivered orders",
       color: "bg-yellow-100 text-yellow-800",
       onClick: () => navigate("/deliverorder")
     },
@@ -106,7 +106,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="max-w-5xl py-8 bg-gray-50">
+    <div className="max-w-5xl ms-auto py-8 bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -126,8 +126,8 @@ const Dashboard = () => {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`p-6 rounded-lg shadow ${stat.color} cursor-pointer hover:shadow-md transition-shadow`}
               onClick={stat.onClick}
             >

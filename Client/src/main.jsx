@@ -15,6 +15,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css'; // Ensure your CSS file is correctly linked
 import App from './App.jsx'; // Adjust the import path if necessary
 import { Provider } from 'react-redux';
+// import './App.css';
 import store from './components/Store/store.jsx'; // Adjust the import path to your store
 
 // Create a root for the React application

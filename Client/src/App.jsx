@@ -3,13 +3,13 @@
 
 
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from "react-router-dom";
-import { 
-  Home, 
-  QrCode, 
-  PlusCircle, 
-  ShoppingCart, 
-  Layers, 
-  LogOut, 
+import {
+  Home,
+  QrCode,
+  PlusCircle,
+  ShoppingCart,
+  Layers,
+  LogOut,
   Menu,
   X,
   ChevronDown,
@@ -82,7 +82,7 @@ function App() {
 
 function AppContent({ onLogout }) {
   const { cart } = useCart();
-  
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
 
@@ -96,7 +96,7 @@ function AppContent({ onLogout }) {
         label: "Dashboard",
         icon: BarChart2,
       },
-  
+
       {
         label: "Master",
         icon: Layers,
@@ -106,18 +106,18 @@ function AppContent({ onLogout }) {
           { to: "/create", label: "Add Product", icon: PlusCircle },
         ],
       },
-  
+
       {
         label: "View Products",
         icon: Package,
         subItems: [
           { to: "/", label: "All Products", icon: Home },
-         
+
         ],
       },
-  
-  
-      
+
+
+
       {
         label: "Orders",
         icon: Package,
@@ -129,40 +129,40 @@ function AppContent({ onLogout }) {
           { to: "/cancelorder", label: "Cancel Order", icon: QrCode },
         ],
       },
-  
-  
+
+
       {
         label: "Stock-in",
         icon: Package,
         subItems: [
           { to: "/purchaseScanQRCode", label: "Purchase Scan", icon: QrCode },
-     
+
         ],
       },
-  
-  
-  
+
+
+
       {
         label: "Billing",
         icon: Package,
         subItems: [
           { to: "/scan", label: "Scan QR", icon: QrCode },
           { to: "/invoice", label: "All Invoices", icon: ClipboardList },
-     
+
         ],
       },
-  
-  
-  
-     
-  
+
+
+
+
+
       { to: "/registration", label: "Registration", icon: UserPlus },
-      
-    
+
+
     ];
   return (
     <div className="min-h-screen w-[100vw] flex bg-gray-50">
-      <div className="hidden md:block">
+      <div className="hidden md:block buttons">
         <Sidbar onLogout={onLogout} />
       </div>
 
@@ -184,7 +184,7 @@ function AppContent({ onLogout }) {
                 <h1 className="text-xl font-bold text-primary-600">ProductScan</h1>
               </div>
 
-          
+
 
               <div className="md:hidden flex items-center">
                 <NavLink
@@ -205,16 +205,16 @@ function AppContent({ onLogout }) {
               </div>
 
               <div className="hidden md:flex items-center space-x-6">
-                
+
 
                 <button
                   onClick={onLogout}
                   className="text-gray-500 hover:text-gray-700 flex items-center"
                 >
                   <LogOut size={20} className="mr-1" />
-                  <span className="text-sm hidden lg:inline">Logout</span>
+                  <span className="text-sm hidden buttons lg:inline">Logout</span>
                 </button>
-             
+
               <NavLink
                   to="/cart"
                   className={({ isActive }) =>
@@ -325,9 +325,9 @@ function AppContent({ onLogout }) {
         </header>
 
         {/* Main Content Area with Fixed Width and Scroll */}
-        <main className="flex-1 max-w-full w-full py-6 px-2 sm:px-4 overflow-hidden md:ml-[10vw]">
+        <main className="flex-1 w-[90vw] py-6 px-2 sm:px-4 overflow-hidden md:ml-[10vw]">
 
-          <div className="w-full max-w-7xl mx-auto h-full overflow-auto px-4 py-4 bg-white rounded-lg shadow">
+          <div className="w-full max-w-5xl mx-auto h-full overflow-auto px-4 py-4 bg-white rounded-lg shadow">
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/dashboard" element={<Dashboard />} />

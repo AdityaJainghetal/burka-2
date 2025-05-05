@@ -237,7 +237,7 @@ const DeliveredOrders = () => {
       cell: row => (
         <button
           onClick={() => viewOrderDetails(row)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-black text-white rounded-md transition-colors"
         >
           View Details
         </button>
@@ -269,13 +269,13 @@ const DeliveredOrders = () => {
       <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
         <button
           onClick={exportToExcel}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
         >
           Export Excel
         </button>
         <button
           onClick={exportToPDF}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white  bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
           Export PDF
         </button>

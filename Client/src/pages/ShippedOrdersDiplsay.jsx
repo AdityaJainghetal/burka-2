@@ -187,7 +187,7 @@ const ShippedOrders = () => {
       name: 'Order ID',
       selector: row => row.formattedId,
       sortable: true,
-      cell: row => <span className="font-mono text-sm">{row.formattedId || 'N/A'}</span>,
+      cell: row => <span className="font-mono text-sm text-gray-700">{row.formattedId || 'N/A'}</span>,
       width: '150px',
     },
     {
@@ -224,7 +224,7 @@ const ShippedOrders = () => {
       selector: row => row.totalPriceAfterDiscount || 0,
       sortable: true,
       cell: row => (
-        <span className="font-semibold text-blue-700">
+        <span className="font-semibold text-gray-800">
           ₹{row.totalPriceAfterDiscount ? row.totalPriceAfterDiscount.toFixed(2) : '0.00'}
         </span>
       ),
@@ -235,7 +235,11 @@ const ShippedOrders = () => {
       selector: row => row.status || '',
       sortable: true,
       cell: row => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+          row.status === 'delivered' ? 'bg-green-100 text-green-800' :
+          row.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+          'bg-yellow-100 text-yellow-800'
+        }`}>
           {row.status ? row.status.toUpperCase() : 'N/A'}
         </span>
       ),
@@ -247,15 +251,15 @@ const ShippedOrders = () => {
         <div className="flex gap-2">
           <button
             onClick={() => viewOrderDetails(row)}
-            className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm transition-colors"
+            className="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm transition-colors shadow-sm"
           >
-            View Details
+            View
           </button>
           <button
             onClick={() => markAsDelivered(row._id)}
-            className="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm transition-colors"
+            className="px-3 py-1.5 bg-black text-white rounded-md  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm transition-colors shadow-sm"
           >
-            Mark Delivered
+            Deliver
           </button>
         </div>
       ),
@@ -277,7 +281,7 @@ const ShippedOrders = () => {
           <input
             type="text"
             placeholder="Search by ID, vendor, amount..."
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm shadow-sm"
             value={searchText}
             onChange={e => setSearchText(e.target.value)}
           />
@@ -286,14 +290,20 @@ const ShippedOrders = () => {
       <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
         <button
           onClick={exportToExcel}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
         >
+          <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
           Export Excel
         </button>
         <button
           onClick={exportToPDF}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-black  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
         >
+          <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
           Export PDF
         </button>
       </div>
@@ -302,12 +312,12 @@ const ShippedOrders = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-200">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="px-6 py-5 border-b border-gray-200 bg-gray-50">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900">Shipped Orders</h2>
-              <p className="mt-1 text-sm text-gray-500">
+              <h2 className="text-2xl font-bold text-gray-800">Shipped Orders</h2>
+              <p className="mt-1 text-sm text-gray-600">
                 Orders that have been shipped and are ready for delivery
               </p>
             </div>
@@ -317,7 +327,7 @@ const ShippedOrders = () => {
               </span>
               <button
                 onClick={handleRefresh}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 disabled={loading}
               >
                 {loading ? (
@@ -389,6 +399,9 @@ const ShippedOrders = () => {
               rows: {
                 style: {
                   minHeight: '60px',
+                  '&:hover': {
+                    backgroundColor: '#f8fafc',
+                  },
                 },
               },
             }}
@@ -398,7 +411,7 @@ const ShippedOrders = () => {
 
       {selectedOrder && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="p-6" ref={printRef}>
               <div className="flex justify-between items-start mb-6">
                 <div>
@@ -412,11 +425,11 @@ const ShippedOrders = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={handlePrint}
-                    className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-1.5 transition-colors"
+                    className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
+                      className="h-4 w-4 mr-2"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -432,11 +445,11 @@ const ShippedOrders = () => {
                   </button>
                   <button
                     onClick={exportToPDF}
-                    className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-1.5 transition-colors"
+                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
+                      className="h-4 w-4 mr-2"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -452,14 +465,14 @@ const ShippedOrders = () => {
                   </button>
                   <button
                     onClick={closeModal}
-                    className="px-3 py-1.5 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
                   >
                     Close
                   </button>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                   <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Vendor Details</h4>
                   {selectedOrder.orderItems[0]?.discountName ? (
                     <div className="space-y-3 text-sm">
@@ -492,13 +505,17 @@ const ShippedOrders = () => {
                     <p className="text-gray-500">No vendor details available</p>
                   )}
                 </div>
-                <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                   <h4 className="font-bold text-gray-700 border-b pb-2 mb-3 text-lg">Order Summary</h4>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Order Status:</span>
                       <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800`}
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          selectedOrder.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                          selectedOrder.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}
                       >
                         {(selectedOrder.status || 'shipped').toUpperCase()}
                       </span>
@@ -510,7 +527,7 @@ const ShippedOrders = () => {
                     {selectedOrder.totalPriceAfterDiscount && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Total:</span>
-                        <span className="text-gray-800">
+                        <span className="text-gray-800 font-medium">
                           ₹{selectedOrder.totalPriceAfterDiscount.toFixed(2)}
                         </span>
                       </div>
@@ -589,22 +606,22 @@ const ShippedOrders = () => {
                                 <div className="text-sm font-medium text-gray-900">{item.productName || 'Product'}</div>
                                 <div className="text-sm text-gray-500">{item.size || 'N/A'} | {item.color || 'N/A'}</div>
                               </div>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-500">₹{(item.price || 0).toFixed(2)}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500">{item.quantity || 0}</td>
-                            <td className="px-4 py-3 text-sm text-gray-500">
-                              ₹{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-500">₹{(item.price || 0).toFixed(2)}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">{item.quantity || 0}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">
+                            ₹{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
+        </div>
       )}
     </div>
   );

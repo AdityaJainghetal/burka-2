@@ -85,7 +85,7 @@ const CancelledOrders = () => {
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.text('Cancelled Orders Report', 14, 16);
-    
+
     const tableData = filteredOrders.map(order => [
       order.formattedId || 'N/A',
       order.customerDetails?.name || 'N/A',
@@ -179,7 +179,7 @@ const CancelledOrders = () => {
         </span>
       ),
     },
-  
+
   ];
 
   const subHeaderComponent = (
@@ -192,15 +192,15 @@ const CancelledOrders = () => {
         onChange={e => setSearchText(e.target.value)}
       />
       <div className="flex space-x-2">
-        <button
+        <button style={{ color:"black !important" }}
           onClick={exportToExcel}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+          className="px-4 py-2 bg-black   rounded-md  transition-colors"
         >
           Export to Excel
         </button>
         <button
           onClick={exportToPDF}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          className="px-4 py-2  bg-black text-white rounded-md  transition-colors"
         >
           Export to PDF
         </button>
