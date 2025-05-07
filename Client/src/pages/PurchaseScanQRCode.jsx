@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { QrCode, Camera, AlertCircle, CheckCircle, Loader2, X, Scan, ShoppingCart, Keyboard } from "lucide-react";
 import axios from "axios";
 
-const PurchaseScanstocks = () => {
+const PurchaseScanQRCode = () => {
   const videoRef = useRef(null);
   const [product, setProduct] = useState(null);
   const [scanning, setScanning] = useState(false);
@@ -11,11 +11,11 @@ const PurchaseScanstocks = () => {
   const [loading, setLoading] = useState(false);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
-  const [stock, setstock] = useState(1);
+  const [quantity, setQuantity] = useState(1);
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
-  const [cartstock, setCartstock] = useState("1");
-  const [cartstockError, setCartstockError] = useState(null);
+  const [cartQuantity, setCartQuantity] = useState("1");
+  const [cartQuantityError, setCartQuantityError] = useState(null);
   const [cartLoading, setCartLoading] = useState(false);
   const [manualBarcode, setManualBarcode] = useState("");
   const [scanTimeout, setScanTimeout] = useState(false);
@@ -24,7 +24,7 @@ const PurchaseScanstocks = () => {
   const getProductByBarcode = async (barcode) => {
     try {
       console.log("Fetching product for barcodeNumber:", barcode);
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/barcode/purchase/barcode/${barcode}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/purchase/barcode/${barcode}`);
       console.log("Product response:", response.data);
       return response.data;
     } catch (error) {
@@ -34,12 +34,12 @@ const PurchaseScanstocks = () => {
   };
 
   // Update purchase and product stock
-  const updateProductstock = async (barcode, stock) => {
+  const updateProductQuantity = async (barcode, quantity) => {
     try {
-      console.log("Updating purchase for barcodeNumber:", barcode, "stock:", stock);
-      const response = await axios.put(`${import.meta.env.VITE_API_URL}/purchase/scans`, {
+      console.log("Updating purchase for barcodeNumber:", barcode, "Quantity:", quantity);
+      const response = await axios.put(`${import.meta.env.VITE_API_URL}/purchase/scan`, {
         barcode,
-        stock
+        quantity
       });
       console.log("Purchase update response:", response.data);
       return response.data;
@@ -50,19 +50,19 @@ const PurchaseScanstocks = () => {
   };
 
   // Add product to cart by barcode
-  const addToCart = async (barcode, stock) => {
+  const addToCart = async (barcode, quantity) => {
     setCartLoading(true);
     try {
-      console.log("Sending request to add to cart - BarcodeNumber:", barcode, "stock:", stock);
+      console.log("Sending request to add to cart - BarcodeNumber:", barcode, "Quantity:", quantity);
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/cart/addByBarcode`, {
         barcode,
-        stock
+        quantity
       });
       console.log("Cart response:", response.data);
       setShowAddToCartModal(false);
       setScannedProduct(null);
-      setCartstock("1");
-      setCartstockError(null);
+      setCartQuantity("1");
+      setCartQuantityError(null);
       setBarcode("");
       setProduct(null);
       setPurchaseSuccess(true);
@@ -194,8 +194,8 @@ const PurchaseScanstocks = () => {
     setPurchaseSuccess(false);
     setScannedProduct(null);
     setShowAddToCartModal(false);
-    setCartstock("1");
-    setCartstockError(null);
+    setCartQuantity("1");
+    setCartQuantityError(null);
     setManualBarcode("");
     setScanTimeout(false);
     setScanning(true);
@@ -216,12 +216,12 @@ const PurchaseScanstocks = () => {
 
     setPurchaseLoading(true);
     try {
-      await updateProductstock(barcode, stock);
+      await updateProductQuantity(barcode, quantity);
       console.log("Purchase recorded successfully");
       setPurchaseSuccess(true);
       setProduct(null);
       setBarcode("");
-      setstock(1);
+      setQuantity(1);
       alert("Purchase recorded successfully!");
     } catch (err) {
       console.error("Error recording purchase:", err.message);
@@ -232,18 +232,18 @@ const PurchaseScanstocks = () => {
     }
   };
 
-  const handlestockChange = (value) => {
-    console.log("stock changed:", value);
-    setCartstock(value);
+  const handleQuantityChange = (value) => {
+    console.log("Quantity changed:", value);
+    setCartQuantity(value);
     const numValue = parseInt(value, 10);
     if (!value) {
-      setCartstockError("stock is required");
+      setCartQuantityError("Quantity is required");
     } else if (isNaN(numValue) || numValue < 1) {
-      setCartstockError("stock must be at least 1");
+      setCartQuantityError("Quantity must be at least 1");
     } else if (scannedProduct && numValue > scannedProduct.stock) {
-      setCartstockError(`stock cannot exceed available stock (${scannedProduct.stock})`);
+      setCartQuantityError(`Quantity cannot exceed available stock (${scannedProduct.stock})`);
     } else {
-      setCartstockError(null);
+      setCartQuantityError(null);
     }
   };
 
@@ -329,7 +329,7 @@ const PurchaseScanstocks = () => {
         </div>
 
         {/* Scanner Area */}
-        <div class="px-6 pb-6">
+        <div className="px-6 pb-6">
           {scanning ? (
             <div className="relative">
               <div className="relative aspect-square overflow-hidden rounded-lg border-2 border-blue-400">
@@ -419,8 +419,8 @@ const PurchaseScanstocks = () => {
                       console.log("Closing modal");
                       setShowAddToCartModal(false);
                       setScannedProduct(null);
-                      setCartstock("1");
-                      setCartstockError(null);
+                      setCartQuantity("1");
+                      setCartQuantityError(null);
                     }}
                     className="text-gray-500 hover:text-gray-700"
                   >
@@ -455,19 +455,19 @@ const PurchaseScanstocks = () => {
                 </div>
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    stock
+                    Quantity
                   </label>
                   <input
                     type="text"
-                    value={cartstock}
-                    onChange={(e) => handlestockChange(e.target.value)}
+                    value={cartQuantity}
+                    onChange={(e) => handleQuantityChange(e.target.value)}
                     className={`w-full px-3 py-2 border rounded-md ${
-                      cartstockError ? 'border-red-500' : 'border-gray-300'
+                      cartQuantityError ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Enter stock"
+                    placeholder="Enter quantity"
                   />
-                  {cartstockError && (
-                    <p className="text-red-500 text-sm mt-1">{cartstockError}</p>
+                  {cartQuantityError && (
+                    <p className="text-red-500 text-sm mt-1">{cartQuantityError}</p>
                   )}
                 </div>
                 <div className="flex justify-end gap-3">
@@ -476,8 +476,8 @@ const PurchaseScanstocks = () => {
                       console.log("Cancel button clicked");
                       setShowAddToCartModal(false);
                       setScannedProduct(null);
-                      setCartstock("1");
-                      setCartstockError(null);
+                      setCartQuantity("1");
+                      setCartQuantityError(null);
                     }}
                     className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-md"
                   >
@@ -485,17 +485,17 @@ const PurchaseScanstocks = () => {
                   </button>
                   <button
                     onClick={() => {
-                      console.log("Add to cart button clicked, stock:", cartstock);
-                      const numstock = parseInt(cartstock, 10);
-                      if (!cartstockError && numstock >= 1 && numstock <= scannedProduct.stock) {
-                        addToCart(barcode, numstock);
+                      console.log("Add to cart button clicked, quantity:", cartQuantity);
+                      const numQuantity = parseInt(cartQuantity, 10);
+                      if (!cartQuantityError && numQuantity >= 1 && numQuantity <= scannedProduct.stock) {
+                        addToCart(barcode, numQuantity);
                       } else {
-                        console.log("Invalid stock, cannot add to cart");
-                        alert("Please enter a valid stock");
+                        console.log("Invalid quantity, cannot add to cart");
+                        alert("Please enter a valid quantity");
                       }
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center"
-                    disabled={cartLoading || cartstockError || !cartstock}
+                    disabled={cartLoading || cartQuantityError || !cartQuantity}
                   >
                     {cartLoading ? (
                       <Loader2 size={18} className="mr-2 animate-spin" />
@@ -521,17 +521,17 @@ const PurchaseScanstocks = () => {
                   <span className="font-bold text-gray-800">₹{product.price.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">stock to Add:</span>
+                  <span className="text-gray-600">Quantity to Add:</span>
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => setstock(Math.max(1, stock - 1))}
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
                     >
                       -
                     </button>
-                    <span className="w-10 text-center font-medium">{stock}</span>
+                    <span className="w-10 text-center font-medium">{quantity}</span>
                     <button
-                      onClick={() => setstock(stock + 1)}
+                      onClick={() => setQuantity(quantity + 1)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
                     >
                       +
@@ -566,4 +566,4 @@ const PurchaseScanstocks = () => {
   );
 };
 
-export default PurchaseScanstocks;
+export default PurchaseScanQRCode;
