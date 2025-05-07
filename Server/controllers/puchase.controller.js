@@ -78,7 +78,45 @@ const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
   });
 });
 
+const scanAndIncreaseStock = asyncHandler(async (req, res) => {
+  const { barcode, quantity = 1 } = req.body;
+
+  if (!barcode) {
+    console.log("Barcode missing in request");
+    res.status(400);
+    throw new Error("Barcode is required");
+  }
+
+  if (!quantity || quantity < 1) {
+    console.log("Invalid quantity in request:", quantity);
+    res.status(400);
+    throw new Error("Quantity must be at least 1");
+  }
+
+  console.log("Increasing stock for barcodeNumber:", barcode, "Quantity:", quantity);
+  const product = await Product.findOne({ barcodeNumber: barcode });
+
+  if (!product) {
+    console.log("Product not found for barcodeNumber:", barcode);
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  // Increase product stock
+  product.stock = (parseInt(product.stock) || 0) + parseInt(quantity);
+  await product.save();
+
+  console.log("Updated product stock:", product.stock);
+
+  res.json({
+    message: `Stock increased by ${quantity}`,
+    updatedStock: product.stock,
+    productId: product._id
+  });
+});
+
 module.exports = {
   getProductByBarcode,
-  scanAndIncreaseQuantity
+  scanAndIncreaseQuantity,
+  scanAndIncreaseStock
 };
