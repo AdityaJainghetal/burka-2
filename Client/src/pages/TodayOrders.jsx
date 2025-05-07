@@ -436,7 +436,7 @@ const TodayOrders = () => {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
@@ -476,7 +476,7 @@ const TodayOrders = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
         <div className="mb-6">
           <div className="relative max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

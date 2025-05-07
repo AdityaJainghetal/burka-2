@@ -363,7 +363,7 @@ function AppContent({ onLogout }) {
               { to: "/scan", icon: <QrCode />, label: "Scan" },
               { to: "/create", icon: <PlusCircle />, label: "Add" },
               { to: "/categories", icon: <Layers />, label: "Categories" },
-              { to: "/paymentdetail", icon: <MdOutlinePayments />, label: "Payments" },
+              // { to: "/paymentdetail", icon: <MdOutlinePayments />, label: "Payments" },
             ].map(({ to, icon, label }) => (
               <NavLink
                 key={to}

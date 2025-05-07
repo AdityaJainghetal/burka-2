@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import { deleteProduct, fetchcategory, fetchSubcategory, fetchProducts } from "../api"
 import { Package, Search, RefreshCw, Trash2, ShoppingCart, Tag, Info, X, Edit, ListOrdered, Printer } from "lucide-react"
 import { useCart } from "../CartContext"
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
+
 
 const ProductList = () => {
   const [products, setProducts] = useState([])
@@ -498,8 +499,8 @@ const ProductList = () => {
 
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
                   <div className="flex space-x-1">
+                 
                     <button
                       className={`p-1.5 rounded-full ${
                         product.stock <= 0
@@ -548,7 +549,7 @@ const ProductList = () => {
                     </button>
                   </div>
                 </div>
-
+                <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
                 <div className="flex items-baseline mb-2">
                   <span className="text-primary-600 font-bold text-lg">
                     ₹{Number.parseFloat(product.price).toFixed(2)}
