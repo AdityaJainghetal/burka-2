@@ -49,6 +49,7 @@ import ShippedOrdersDisplay from "./pages/ShippedOrdersDiplsay";
 import CancelledOrders from "./pages/CancelledOrder";
 import Invoice from "./pages/Invoice";
 import PurchaseScanstocks from "./pages/PurchaseScanstocks";
+import ChartComponent from "./pages/ChartCompoenent";
 
 
 function App() {
@@ -353,6 +354,7 @@ function AppContent({ onLogout }) {
               <Route path="/cancelorder" element={<CancelledOrders />} />
               <Route path="/invoice" element={<Invoice/>} />
               <Route path="/purchasescan" element={<PurchaseScanstocks/>}/>
+              <Route path="/cardcompoenent" element={<ChartComponent/>}/>
 
             </Routes>
           </div>

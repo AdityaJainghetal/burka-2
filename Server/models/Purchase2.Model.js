@@ -8,10 +8,10 @@ const purchaseSchema = new mongoose.Schema({
       required: true
     },
     stock: {
-    type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      min: 1
-    }
+        type: Number,
+        required: true,
+        min: 1
+      }
   }],
   stock: { 
     type: Number, 
