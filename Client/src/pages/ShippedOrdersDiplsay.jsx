@@ -877,28 +877,7 @@ const ShippedOrders = () => {
       ),
       width: '120px',
     },
-    {
-      name: 'Actions',
-      cell: row => (
-        <div className="flex gap-2">
-          <button
-            onClick={() => viewOrderDetails(row)}
-            className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm transition-colors shadow-sm"
-          >
-            View
-          </button>
-          <button
-            onClick={() => markAsDelivered(row._id)}
-            className="px-3 py-1.5 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-sm transition-colors shadow-sm"
-          >
-            Deliver
-          </button>
-        </div>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-    },
+    
   ];
 
   const subHeaderComponent = (

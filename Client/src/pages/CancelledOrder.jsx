@@ -162,23 +162,7 @@ const CancelledOrders = () => {
           ₹{row.totalPriceAfterDiscount ? row.totalPriceAfterDiscount.toFixed(2) : '0.00'}
         </span>
       ),
-    },
-    {
-      name: 'Cancellation Reason',
-      selector: row => row.cancellationDetails?.reason || 'Not specified',
-      sortable: true,
-      cell: row => <span className="text-sm">{row.cancellationDetails?.reason || 'Not specified'}</span>,
-    },
-    {
-      name: 'Status',
-      selector: row => row.status || '',
-      sortable: true,
-      cell: row => (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-          {row.status ? row.status.toUpperCase() : 'N/A'}
-        </span>
-      ),
-    },
+    }
 
   ];
 

@@ -25,9 +25,7 @@ const getProductByBarcode = asyncHandler(async (req, res) => {
   res.json(product);
 });
 
-// @desc    Scan and increase purchase stock and product stock
-// @route   PUT /api/purchase/scan
-// @access  Public
+
 const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
   const { barcode, quantity = 1 } = req.body;
 
