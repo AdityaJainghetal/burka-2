@@ -137,7 +137,8 @@ function AppContent({ onLogout }) {
         label: "Stock-in",
         icon: Package,
         subItems: [
-          { to: "/purchaseScanQRCode", label: "Purchase Scan", icon: QrCode },
+          {to:"/purchasescan", label:"purchaseStock", icon:QrCode}
+
 
         ],
       },
@@ -148,9 +149,10 @@ function AppContent({ onLogout }) {
         label: "Billing",
         icon: Package,
         subItems: [
-          { to: "/scan", label: "Scan QR", icon: QrCode },
+          // { to: "/scan", label: "Scan QR", icon: QrCode },
+          { to: "/purchaseScanQRCode", label: "Scan QR", icon: QrCode },
+
           { to: "/invoice", label: "All Invoices", icon: ClipboardList },
-          {to:"/purchasescan", label:"purchaseStock", icon:QrCode}
 
         ],
       },
