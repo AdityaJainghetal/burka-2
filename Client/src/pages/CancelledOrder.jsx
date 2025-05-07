@@ -192,15 +192,15 @@ const CancelledOrders = () => {
         onChange={e => setSearchText(e.target.value)}
       />
       <div className="flex space-x-2">
-        <button style={{ color:"black !important" }}
+        <button 
           onClick={exportToExcel}
-          className="px-4 py-2 bg-black   rounded-md  transition-colors"
+          className="px-4 py-2  bg-blue-700  rounded-md  transition-colors"
         >
           Export to Excel
         </button>
         <button
           onClick={exportToPDF}
-          className="px-4 py-2  bg-black text-white rounded-md  transition-colors"
+          className="px-4 py-2  bg-blue-700 rounded-md  transition-colors"
         >
           Export to PDF
         </button>

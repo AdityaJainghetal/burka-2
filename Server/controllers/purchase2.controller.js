@@ -2,9 +2,7 @@ const asyncHandler = require("express-async-handler");
 const Product = require("../models/product.model");
 const Purchase = require("../models/Purchase2.Model");
 
-// @desc    Get product by barcode number
-// @route   GET /api/purchase/barcode/:barcode
-// @access  Public
+
 const getProductByBarcode = asyncHandler(async (req, res) => {
   const { barcode } = req.params;
 
@@ -49,7 +47,7 @@ const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
   }
 
   // Update product stock
-  product.stock = (parseInt(product.stock) || 0) + quantity;
+  product.stock = (parseInt(product.stock) || 0) + stock;
   await product.save();
   console.log("Updated product stock:", product.stock);
 
