@@ -309,7 +309,7 @@ const PurchaseScanQRCode = () => {
           {error && (
             <div className="flex items-center bg-red-50 text-red-700 p-3 rounded-lg mb-4 border border-red-200">
               <AlertCircle className="mr-2 flex-shrink-0" />
-              <span>{error}</span>
+              {/* <span>{error}</span> */}
             </div>
           )}
 
