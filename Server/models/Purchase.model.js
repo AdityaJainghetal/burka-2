@@ -7,19 +7,13 @@ const purchaseSchema = new mongoose.Schema({
       ref: "Product",
       required: true
     },
-    // quantity: {
-    //   type: Number,
-    //   required: true,
-    //   min: 1
-    // }
-    stock:{
-        type: Number,
-         required: true,
-         min: 1
-      }
-    
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1
+    }
   }],
-  stock: { 
+  quantity: { 
     type: Number, 
     required: true, 
     min: 1 
