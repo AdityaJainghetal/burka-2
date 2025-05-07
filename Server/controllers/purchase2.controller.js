@@ -126,7 +126,7 @@ const scanAndIncreaseQuantity = asyncHandler(async (req, res) => {
     throw new Error("Barcode is required");
   }
 
-  console.log("Scanning barcodeNumber:", barcode, "Quantity:", stock);
+  console.log("Scanning barcodeNumber:", barcode, "stocks:", stock);
   const product = await Product.findOne({ barcodeNumber: barcode });
 
   if (!product) {
