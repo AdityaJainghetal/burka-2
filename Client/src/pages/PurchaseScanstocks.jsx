@@ -11,11 +11,11 @@ const PurchaseScanstocks = () => {
   const [loading, setLoading] = useState(false);
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
-  const [stock, setStock] = useState(1);
+  const [stock, setstock] = useState(1);
   const [showAddToCartModal, setShowAddToCartModal] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
-  const [cartStock, setCartStock] = useState("1");
-  const [cartStockError, setCartStockError] = useState(null);
+  const [cartstock, setCartstock] = useState("1");
+  const [cartstockError, setCartstockError] = useState(null);
   const [cartLoading, setCartLoading] = useState(false);
   const [manualBarcode, setManualBarcode] = useState("");
   const [scanTimeout, setScanTimeout] = useState(false);
@@ -24,7 +24,7 @@ const PurchaseScanstocks = () => {
   const getProductByBarcode = async (barcode) => {
     try {
       console.log("Fetching product for barcodeNumber:", barcode);
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/purchase/barcode/${barcodes}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/barcode/purchase/barcode/${barcode}`);
       console.log("Product response:", response.data);
       return response.data;
     } catch (error) {
@@ -34,9 +34,9 @@ const PurchaseScanstocks = () => {
   };
 
   // Update purchase and product stock
-  const updateProductStock = async (barcode, stock) => {
+  const updateProductstock = async (barcode, stock) => {
     try {
-      console.log("Updating purchase for barcodeNumber:", barcode, "Stock:", stock);
+      console.log("Updating purchase for barcodeNumber:", barcode, "stock:", stock);
       const response = await axios.put(`${import.meta.env.VITE_API_URL}/purchase/scans`, {
         barcode,
         stock
@@ -53,7 +53,7 @@ const PurchaseScanstocks = () => {
   const addToCart = async (barcode, stock) => {
     setCartLoading(true);
     try {
-      console.log("Sending request to add to cart - BarcodeNumber:", barcode, "Stock:", stock);
+      console.log("Sending request to add to cart - BarcodeNumber:", barcode, "stock:", stock);
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/cart/addByBarcode`, {
         barcode,
         stock
@@ -61,8 +61,8 @@ const PurchaseScanstocks = () => {
       console.log("Cart response:", response.data);
       setShowAddToCartModal(false);
       setScannedProduct(null);
-      setCartStock("1");
-      setCartStockError(null);
+      setCartstock("1");
+      setCartstockError(null);
       setBarcode("");
       setProduct(null);
       setPurchaseSuccess(true);
@@ -194,8 +194,8 @@ const PurchaseScanstocks = () => {
     setPurchaseSuccess(false);
     setScannedProduct(null);
     setShowAddToCartModal(false);
-    setCartStock("1");
-    setCartStockError(null);
+    setCartstock("1");
+    setCartstockError(null);
     setManualBarcode("");
     setScanTimeout(false);
     setScanning(true);
@@ -216,12 +216,12 @@ const PurchaseScanstocks = () => {
 
     setPurchaseLoading(true);
     try {
-      await updateProductStock(barcode, stock);
+      await updateProductstock(barcode, stock);
       console.log("Purchase recorded successfully");
       setPurchaseSuccess(true);
       setProduct(null);
       setBarcode("");
-      setStock(1);
+      setstock(1);
       alert("Purchase recorded successfully!");
     } catch (err) {
       console.error("Error recording purchase:", err.message);
@@ -232,18 +232,18 @@ const PurchaseScanstocks = () => {
     }
   };
 
-  const handleStockChange = (value) => {
-    console.log("Stock changed:", value);
-    setCartStock(value);
+  const handlestockChange = (value) => {
+    console.log("stock changed:", value);
+    setCartstock(value);
     const numValue = parseInt(value, 10);
     if (!value) {
-      setCartStockError("Stock is required");
+      setCartstockError("stock is required");
     } else if (isNaN(numValue) || numValue < 1) {
-      setCartStockError("Stock must be at least 1");
+      setCartstockError("stock must be at least 1");
     } else if (scannedProduct && numValue > scannedProduct.stock) {
-      setCartStockError(`Stock cannot exceed available stock (${scannedProduct.stock})`);
+      setCartstockError(`stock cannot exceed available stock (${scannedProduct.stock})`);
     } else {
-      setCartStockError(null);
+      setCartstockError(null);
     }
   };
 
@@ -419,8 +419,8 @@ const PurchaseScanstocks = () => {
                       console.log("Closing modal");
                       setShowAddToCartModal(false);
                       setScannedProduct(null);
-                      setCartStock("1");
-                      setCartStockError(null);
+                      setCartstock("1");
+                      setCartstockError(null);
                     }}
                     className="text-gray-500 hover:text-gray-700"
                   >
@@ -455,19 +455,19 @@ const PurchaseScanstocks = () => {
                 </div>
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Stock
+                    stock
                   </label>
                   <input
                     type="text"
-                    value={cartStock}
-                    onChange={(e) => handleStockChange(e.target.value)}
+                    value={cartstock}
+                    onChange={(e) => handlestockChange(e.target.value)}
                     className={`w-full px-3 py-2 border rounded-md ${
-                      cartStockError ? 'border-red-500' : 'border-gray-300'
+                      cartstockError ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Enter stock"
                   />
-                  {cartStockError && (
-                    <p className="text-red-500 text-sm mt-1">{cartStockError}</p>
+                  {cartstockError && (
+                    <p className="text-red-500 text-sm mt-1">{cartstockError}</p>
                   )}
                 </div>
                 <div className="flex justify-end gap-3">
@@ -476,8 +476,8 @@ const PurchaseScanstocks = () => {
                       console.log("Cancel button clicked");
                       setShowAddToCartModal(false);
                       setScannedProduct(null);
-                      setCartStock("1");
-                      setCartStockError(null);
+                      setCartstock("1");
+                      setCartstockError(null);
                     }}
                     className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-md"
                   >
@@ -485,17 +485,17 @@ const PurchaseScanstocks = () => {
                   </button>
                   <button
                     onClick={() => {
-                      console.log("Add to cart button clicked, stock:", cartStock);
-                      const numStock = parseInt(cartStock, 10);
-                      if (!cartStockError && numStock >= 1 && numStock <= scannedProduct.stock) {
-                        addToCart(barcode, numStock);
+                      console.log("Add to cart button clicked, stock:", cartstock);
+                      const numstock = parseInt(cartstock, 10);
+                      if (!cartstockError && numstock >= 1 && numstock <= scannedProduct.stock) {
+                        addToCart(barcode, numstock);
                       } else {
                         console.log("Invalid stock, cannot add to cart");
                         alert("Please enter a valid stock");
                       }
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center"
-                    disabled={cartLoading || cartStockError || !cartStock}
+                    disabled={cartLoading || cartstockError || !cartstock}
                   >
                     {cartLoading ? (
                       <Loader2 size={18} className="mr-2 animate-spin" />
@@ -521,17 +521,17 @@ const PurchaseScanstocks = () => {
                   <span className="font-bold text-gray-800">₹{product.price.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Stock to Add:</span>
+                  <span className="text-gray-600">stock to Add:</span>
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => setStock(Math.max(1, stock - 1))}
+                      onClick={() => setstock(Math.max(1, stock - 1))}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
                     >
                       -
                     </button>
                     <span className="w-10 text-center font-medium">{stock}</span>
                     <button
-                      onClick={() => setStock(stock + 1)}
+                      onClick={() => setstock(stock + 1)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
                     >
                       +
