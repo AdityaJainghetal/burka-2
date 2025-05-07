@@ -12,13 +12,14 @@ const purchaseSchema = new mongoose.Schema({
     //   required: true,
     //   min: 1
     // }
-    stock: {
-      type: Number,
-      required: true,
-      min: 1
-    }
+    stock:{
+        type: Number,
+         required: true,
+         min: 1
+      }
+    
   }],
-  quantity: { 
+  stock: { 
     type: Number, 
     required: true, 
     min: 1 
