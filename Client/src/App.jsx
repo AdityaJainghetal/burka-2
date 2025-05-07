@@ -48,6 +48,7 @@ import DeliveredOrder from "./pages/DilveredOrder";
 import ShippedOrdersDisplay from "./pages/ShippedOrdersDiplsay";
 import CancelledOrders from "./pages/CancelledOrder";
 import Invoice from "./pages/Invoice";
+import PurchaseScanstocks from "./pages/PurchaseScanstocks";
 
 
 function App() {
@@ -148,6 +149,7 @@ function AppContent({ onLogout }) {
         subItems: [
           { to: "/scan", label: "Scan QR", icon: QrCode },
           { to: "/invoice", label: "All Invoices", icon: ClipboardList },
+          {to:"/purchasescan", label:"purchaseStock", icon:QrCode}
 
         ],
       },
@@ -350,6 +352,7 @@ function AppContent({ onLogout }) {
               <Route path="/shippedorderdisplay" element={<ShippedOrdersDisplay />} />
               <Route path="/cancelorder" element={<CancelledOrders />} />
               <Route path="/invoice" element={<Invoice/>} />
+              <Route path="/purchasescan" element={<PurchaseScanstocks/>}/>
 
             </Routes>
           </div>
