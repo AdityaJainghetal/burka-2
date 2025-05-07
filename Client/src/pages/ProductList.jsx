@@ -1,26 +1,20 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { deleteProduct, fetchcategory, fetchSubcategory, fetchProducts } from "../api"
-import { Package, Search, RefreshCw, Trash2, ShoppingCart, Tag, Info, X, Edit, ListOrdered, Printer } from "lucide-react"
+import { deleteProduct, fetchProducts } from "../api"
+import { Package, Search, RefreshCw, Trash2, ShoppingCart, Tag, Info, Edit, Printer, X } from "lucide-react"
 import { useCart } from "../CartContext"
-import { useNavigate } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom"
 
 const ProductList = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [categories, setCategories] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [subCategories, setSubCategories] = useState([])
   const { fetchCart } = useCart()
   const [addingToCart, setAddingToCart] = useState({})
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [editingProduct, setEditingProduct] = useState(null)
-  const [showAddToCartModal, setShowAddToCartModal] = useState(false)
-  const [selectedProductForCart, setSelectedProductForCart] = useState(null)
-  const [cartQuantity, setCartQuantity] = useState(1)
   const [editFormData, setEditFormData] = useState({
     name: "",
     price: "",
@@ -288,9 +282,6 @@ const ProductList = () => {
         body: JSON.stringify({ quantity }),
       })
       await fetchCart()
-      setShowAddToCartModal(false)
-      setSelectedProductForCart(null)
-      setCartQuantity(1)
     } catch (err) {
       console.error("Failed to add product to cart:", err)
       setError("Failed to add product to cart.")
@@ -301,73 +292,11 @@ const ProductList = () => {
 
   const handleAddToCartClick = (product) => {
     if (product.stock <= 0) return
-    setSelectedProductForCart(product)
-    setCartQuantity(1)
-    setShowAddToCartModal(true)
+    addToCart(product._id, 1)
   }
 
   return (
     <div className="bg-white shadow rounded-lg max-w-5xl py-8">
-      {showAddToCartModal && selectedProductForCart && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-xl font-bold">Add to Cart</h2>
-              <button
-                onClick={() => setShowAddToCartModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="mb-4">
-              <p className="text-lg font-medium">{selectedProductForCart.name}</p>
-              <p className="text-sm text-gray-600">
-                Available: {selectedProductForCart.stock} in stock
-              </p>
-            </div>
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Quantity
-              </label>
-              <input
-                type="number"
-                min="1"
-                max={selectedProductForCart.stock}
-                value={cartQuantity}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value, 10)
-                  if (!isNaN(value) && value >= 1 && value <= selectedProductForCart.stock) {
-                    setCartQuantity(value)
-                  }
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowAddToCartModal(false)}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-md"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => addToCart(selectedProductForCart._id, cartQuantity)}
-                className="bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded-md flex items-center"
-                disabled={addingToCart[selectedProductForCart._id]}
-              >
-                {addingToCart[selectedProductForCart._id] ? (
-                  <RefreshCw size={18} className="mr-2 animate-spin" />
-                ) : (
-                  <ShoppingCart size={18} className="mr-2" />
-                )}
-                Add to Cart
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {showPrintDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
@@ -500,7 +429,6 @@ const ProductList = () => {
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex space-x-1">
-                 
                     <button
                       className={`p-1.5 rounded-full ${
                         product.stock <= 0

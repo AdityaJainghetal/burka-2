@@ -156,20 +156,42 @@ const updateCartItem = async (req, res) => {
     }
 };
 
-// Remove a product from the cart
 const removeCartItem = async (req, res) => {
     try {
+        console.log("Removing product from cart:", req.params);
         const { productId } = req.params;
-        let cart = await Cart.findOne();
+
+        // Find the cart and populate product details
+        let cart = await Cart.findOne()
+        
+        console.log("Cart:", cart);
+
         if (!cart) {
             console.log("Cart not found");
             return res.status(404).json({ message: "Cart not found" });
         }
+        const productIndex = cart.products.findIndex(p => p.product.toString() === productId);
+        console.log("Product index:", productIndex);
+        // Check if cart.products is null or undefined, and initialize it as an empty array if so
+        if (!cart.products || cart.products.length === 0) {
+            console.log("No products in cart");
+            return res.status(200).json(cart);
+        }
 
-        cart.products = cart.products.filter(p => p.product.toString() !== productId);
+        // Check if the product exists in the cart
+        const initialProductCount = cart.products.length;
+        cart.products = cart.products.filter(p => p._id.toString() !== productId);
+        console.log("Cart after removing product:", cart.products);
+        
+        if (initialProductCount === cart.products.length) {
+            console.log("Product not found in cart:", productId);
+            return res.status(404).json({ message: "Product not found in cart" });
+        }
+
         console.log("Removed product from cart:", productId);
         await cart.save();
 
+        // Fetch the updated cart with populated products
         const updatedCart = await Cart.findOne().populate('products.product');
         console.log("Cart updated:", updatedCart);
         res.status(200).json(updatedCart);

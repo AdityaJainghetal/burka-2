@@ -1,19 +1,22 @@
 import { useRef, useState, useEffect } from "react";
-import { QrCode, Camera, AlertCircle, CheckCircle, Loader2, X, Scan, Keyboard } from "lucide-react";
+import { QrCode, Camera, AlertCircle, CheckCircle, Loader2, X, Scan, ShoppingCart, Keyboard } from "lucide-react";
 import axios from "axios";
 
-const PurchaseScanQRCode = () => {
+const PurchaseScanstocks = () => {
   const videoRef = useRef(null);
   const [product, setProduct] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState(null);
   const [barcode, setBarcode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [stockUpdateSuccess, setStockUpdateSuccess] = useState(false);
-  const [quantity, setQuantity] = useState("1");
-  const [quantityError, setQuantityError] = useState(null);
+  const [purchaseLoading, setPurchaseLoading] = useState(false);
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+  const [stock, setstock] = useState(1);
+  const [showAddToCartModal, setShowAddToCartModal] = useState(false);
   const [scannedProduct, setScannedProduct] = useState(null);
-  const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const [cartstock, setCartstock] = useState("1");
+  const [cartstockError, setCartstockError] = useState(null);
+  const [cartLoading, setCartLoading] = useState(false);
   const [manualBarcode, setManualBarcode] = useState("");
   const [scanTimeout, setScanTimeout] = useState(false);
 
@@ -21,7 +24,7 @@ const PurchaseScanQRCode = () => {
   const getProductByBarcode = async (barcode) => {
     try {
       console.log("Fetching product for barcodeNumber:", barcode);
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/purchase/barcode/${barcode}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/barcode/purchase/barcode/${barcode}`);
       console.log("Product response:", response.data);
       return response.data;
     } catch (error) {
@@ -30,34 +33,50 @@ const PurchaseScanQRCode = () => {
     }
   };
 
-  // Increase product stock
-  const increaseStock = async (barcode, quantity) => {
-    setLoading(true);
+  // Update purchase and product stock
+  const updateProductstock = async (barcode, stock) => {
     try {
-      console.log("Increasing stock for barcodeNumber:", barcode, "Quantity:", quantity);
-      const response = await axios.put(`${import.meta.env.VITE_API_URL}/purchase/scanStock`, {
+      console.log("Updating purchase for barcodeNumber:", barcode, "stock:", stock);
+      const response = await axios.put(`${import.meta.env.VITE_API_URL}/purchase/scans`, {
         barcode,
-        quantity
+        stock
       });
-      console.log("Stock update response:", response.data);
-      setShowQuantityModal(false);
-      setScannedProduct(null);
-      setQuantity("1");
-      setQuantityError(null);
-      setBarcode("");
-      setProduct(null);
-      setStockUpdateSuccess(true);
-      setError("Stock updated successfully!");
-      alert("Stock updated successfully!");
+      console.log("Purchase update response:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Error increasing stock:", error);
-      const errorMessage = error.response?.data?.message || "Failed to update stock";
+      console.error("Error updating purchase:", error);
+      throw new Error(error.response?.data?.message || "Failed to record purchase");
+    }
+  };
+
+  // Add product to cart by barcode
+  const addToCart = async (barcode, stock) => {
+    setCartLoading(true);
+    try {
+      console.log("Sending request to add to cart - BarcodeNumber:", barcode, "stock:", stock);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/cart/addByBarcode`, {
+        barcode,
+        stock
+      });
+      console.log("Cart response:", response.data);
+      setShowAddToCartModal(false);
+      setScannedProduct(null);
+      setCartstock("1");
+      setCartstockError(null);
+      setBarcode("");
+      setProduct(null);
+      setPurchaseSuccess(true);
+      setError("Product added to cart successfully!");
+      alert("Product added to cart successfully!");
+      return response.data;
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      const errorMessage = error.response?.data?.message || "Failed to add product to cart";
       setError(errorMessage);
       alert(`Error: ${errorMessage}`);
       throw new Error(errorMessage);
     } finally {
-      setLoading(false);
+      setCartLoading(false);
     }
   };
 
@@ -141,7 +160,7 @@ const PurchaseScanQRCode = () => {
         const productData = await getProductByBarcode(scannedBarcode);
         console.log("Product fetched successfully:", productData);
         setScannedProduct(productData);
-        setShowQuantityModal(true);
+        setShowAddToCartModal(true);
         setScanning(false);
         alert(`Product found: ${productData.name}`);
       } catch (err) {
@@ -172,11 +191,11 @@ const PurchaseScanQRCode = () => {
     setError(null);
     setProduct(null);
     setBarcode("");
-    setStockUpdateSuccess(false);
+    setPurchaseSuccess(false);
     setScannedProduct(null);
-    setShowQuantityModal(false);
-    setQuantity("1");
-    setQuantityError(null);
+    setShowAddToCartModal(false);
+    setCartstock("1");
+    setCartstockError(null);
     setManualBarcode("");
     setScanTimeout(false);
     setScanning(true);
@@ -187,16 +206,44 @@ const PurchaseScanQRCode = () => {
     setScanning(false);
   };
 
-  const handleQuantityChange = (value) => {
-    console.log("Quantity changed:", value);
-    setQuantity(value);
+  const handlePurchase = async () => {
+    if (!product || !barcode) {
+      console.log("No product or barcode for purchase");
+      setError("No product or barcode selected for purchase");
+      alert("No product or barcode selected for purchase");
+      return;
+    }
+
+    setPurchaseLoading(true);
+    try {
+      await updateProductstock(barcode, stock);
+      console.log("Purchase recorded successfully");
+      setPurchaseSuccess(true);
+      setProduct(null);
+      setBarcode("");
+      setstock(1);
+      alert("Purchase recorded successfully!");
+    } catch (err) {
+      console.error("Error recording purchase:", err.message);
+      setError(err.message);
+      alert(`Error: ${err.message}`);
+    } finally {
+      setPurchaseLoading(false);
+    }
+  };
+
+  const handlestockChange = (value) => {
+    console.log("stock changed:", value);
+    setCartstock(value);
     const numValue = parseInt(value, 10);
     if (!value) {
-      setQuantityError("Quantity is required");
+      setCartstockError("stock is required");
     } else if (isNaN(numValue) || numValue < 1) {
-      setQuantityError("Quantity must be at least 1");
+      setCartstockError("stock must be at least 1");
+    } else if (scannedProduct && numValue > scannedProduct.stock) {
+      setCartstockError(`stock cannot exceed available stock (${scannedProduct.stock})`);
     } else {
-      setQuantityError(null);
+      setCartstockError(null);
     }
   };
 
@@ -224,7 +271,7 @@ const PurchaseScanQRCode = () => {
       const productData = await getProductByBarcode(trimmedBarcode);
       console.log("Manual barcode product fetched:", productData);
       setScannedProduct(productData);
-      setShowQuantityModal(true);
+      setShowAddToCartModal(true);
       setManualBarcode("");
       alert(`Product found: ${productData.name}`);
     } catch (err) {
@@ -244,7 +291,7 @@ const PurchaseScanQRCode = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <QrCode className="h-8 w-8" />
-              <h1 className="text-2xl font-bold">Stock Update Scanner</h1>
+              <h1 className="text-2xl font-bold">Purchase Scanner</h1>
             </div>
             {scanning && (
               <button
@@ -266,10 +313,10 @@ const PurchaseScanQRCode = () => {
             </div>
           )}
 
-          {stockUpdateSuccess && (
+          {purchaseSuccess && (
             <div className="flex items-center bg-green-50 text-green-700 p-3 rounded-lg mb-4 border border-green-200">
               <CheckCircle className="mr-2 flex-shrink-0" />
-              <span>{error || "Stock updated successfully!"}</span>
+              <span>{error || "Action completed successfully!"}</span>
             </div>
           )}
 
@@ -282,7 +329,7 @@ const PurchaseScanQRCode = () => {
         </div>
 
         {/* Scanner Area */}
-        <div className="px-6 pb-6">
+        <div class="px-6 pb-6">
           {scanning ? (
             <div className="relative">
               <div className="relative aspect-square overflow-hidden rounded-lg border-2 border-blue-400">
@@ -361,19 +408,19 @@ const PurchaseScanQRCode = () => {
             </div>
           )}
 
-          {/* Quantity Modal */}
-          {showQuantityModal && scannedProduct && (
+          {/* Add to Cart Modal */}
+          {showAddToCartModal && scannedProduct && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
               <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
                 <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-xl font-bold">Update Stock</h2>
+                  <h2 className="text-xl font-bold">Add to Cart</h2>
                   <button
                     onClick={() => {
                       console.log("Closing modal");
-                      setShowQuantityModal(false);
+                      setShowAddToCartModal(false);
                       setScannedProduct(null);
-                      setQuantity("1");
-                      setQuantityError(null);
+                      setCartstock("1");
+                      setCartstockError(null);
                     }}
                     className="text-gray-500 hover:text-gray-700"
                   >
@@ -382,7 +429,8 @@ const PurchaseScanQRCode = () => {
                 </div>
                 <div className="mb-4 space-y-2">
                   <p className="text-lg font-medium">{scannedProduct.name}</p>
-                  <p className="text-sm text-gray-600">Current Stock: {scannedProduct.stock}</p>
+                  <p className="text-sm text-gray-600">Price: ₹{scannedProduct.price.toFixed(2)}</p>
+                  <p className="text-sm text-gray-600">Available: {scannedProduct.stock} in stock</p>
                   <p className="text-sm text-gray-600">Barcode Number: {barcode}</p>
                   {scannedProduct.barcode && (
                     <div className="mt-2">
@@ -407,29 +455,29 @@ const PurchaseScanQRCode = () => {
                 </div>
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantity to Add
+                    stock
                   </label>
                   <input
                     type="text"
-                    value={quantity}
-                    onChange={(e) => handleQuantityChange(e.target.value)}
+                    value={cartstock}
+                    onChange={(e) => handlestockChange(e.target.value)}
                     className={`w-full px-3 py-2 border rounded-md ${
-                      quantityError ? 'border-red-500' : 'border-gray-300'
+                      cartstockError ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Enter quantity"
+                    placeholder="Enter stock"
                   />
-                  {quantityError && (
-                    <p className="text-red-500 text-sm mt-1">{quantityError}</p>
+                  {cartstockError && (
+                    <p className="text-red-500 text-sm mt-1">{cartstockError}</p>
                   )}
                 </div>
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => {
                       console.log("Cancel button clicked");
-                      setShowQuantityModal(false);
+                      setShowAddToCartModal(false);
                       setScannedProduct(null);
-                      setQuantity("1");
-                      setQuantityError(null);
+                      setCartstock("1");
+                      setCartstockError(null);
                     }}
                     className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded-md"
                   >
@@ -437,27 +485,79 @@ const PurchaseScanQRCode = () => {
                   </button>
                   <button
                     onClick={() => {
-                      console.log("Update stock button clicked, quantity:", quantity);
-                      const numQuantity = parseInt(quantity, 10);
-                      if (!quantityError && numQuantity >= 1) {
-                        increaseStock(barcode, numQuantity);
+                      console.log("Add to cart button clicked, stock:", cartstock);
+                      const numstock = parseInt(cartstock, 10);
+                      if (!cartstockError && numstock >= 1 && numstock <= scannedProduct.stock) {
+                        addToCart(barcode, numstock);
                       } else {
-                        console.log("Invalid quantity, cannot update stock");
-                        alert("Please enter a valid quantity");
+                        console.log("Invalid stock, cannot add to cart");
+                        alert("Please enter a valid stock");
                       }
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center"
-                    disabled={loading || quantityError || !quantity}
+                    disabled={cartLoading || cartstockError || !cartstock}
                   >
-                    {loading ? (
+                    {cartLoading ? (
                       <Loader2 size={18} className="mr-2 animate-spin" />
                     ) : (
-                      <CheckCircle size={18} className="mr-2" />
+                      <ShoppingCart size={18} className="mr-2" />
                     )}
-                    Update Stock
+                    Add to Cart
                   </button>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Scanned Product for Purchase */}
+          {product && (
+            <div className="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 p-4 border-b">
+                <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
+              </div>
+              <div className="p-4 space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Price:</span>
+                  <span className="font-bold text-gray-800">₹{product.price.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">stock to Add:</span>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setstock(Math.max(1, stock - 1))}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
+                    >
+                      -
+                    </button>
+                    <span className="w-10 text-center font-medium">{stock}</span>
+                    <button
+                      onClick={() => setstock(stock + 1)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                <div className="pt-2">
+                  <button
+                    onClick={handlePurchase}
+                    disabled={purchaseLoading}
+                    className={`w-full py-3 rounded-lg font-medium text-white transition flex items-center justify-center space-x-2 ${
+                      purchaseLoading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 shadow-md'
+                    }`}
+                  >
+                    {purchaseLoading && <Loader2 className="h-5 w-5 animate-spin" />}
+                    <span>{purchaseLoading ? 'Processing...' : 'Record Purchase'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Scanned Barcode Info */}
+          {barcode && !product && !scanning && !showAddToCartModal && (
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 text-center text-sm">
+              <span className="font-medium">Scanned Barcode Number:</span> {barcode}
             </div>
           )}
         </div>
@@ -466,4 +566,4 @@ const PurchaseScanQRCode = () => {
   );
 };
 
-export default PurchaseScanQRCode;
+export default PurchaseScanstocks;
