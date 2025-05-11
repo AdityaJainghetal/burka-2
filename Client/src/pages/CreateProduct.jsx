@@ -189,6 +189,50 @@ const CreateProduct = () => {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
+            <div>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+              Category*
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="">Select Category</option>
+              {categories.map((category) => (
+                <option key={category._id} value={category._id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sub-Category */}
+          <div>
+            <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700 mb-1">
+              Sub-Category
+            </label>
+            <select
+              id="subCategory"
+              name="subCategory"
+              value={formData.subCategory}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              disabled={!formData.category}
+            >
+              <option value="">Select Sub-Category</option>
+              {filteredSubCategories.map((subCategory) => (
+                <option key={subCategory._id} value={subCategory._id}>
+                  {subCategory.name}
+                </option>
+              ))}
+            </select>
+          </div>
           {/* Product Name */}
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -244,48 +288,7 @@ const CreateProduct = () => {
           </div>
 
           {/* Category */}
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-              Category*
-            </label>
-            <select
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="">Select Category</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sub-Category */}
-          <div>
-            <label htmlFor="subCategory" className="block text-sm font-medium text-gray-700 mb-1">
-              Sub-Category
-            </label>
-            <select
-              id="subCategory"
-              name="subCategory"
-              value={formData.subCategory}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              disabled={!formData.category}
-            >
-              <option value="">Select Sub-Category</option>
-              {filteredSubCategories.map((subCategory) => (
-                <option key={subCategory._id} value={subCategory._id}>
-                  {subCategory.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        
 
           {/* Color */}
           <div>
