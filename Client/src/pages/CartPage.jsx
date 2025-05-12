@@ -6,6 +6,7 @@ import { useCart } from "../CartContext";
 import axios from "axios";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+
 import {
   Trash2,
   Plus,
@@ -280,7 +281,7 @@ const CartPage = () => {
                       <button style={{color:"black"}}
                         onClick={() => handleQuantityChange(item._id, (editedQuantities[item._id] || 1) - 1)}
                         disabled={(editedQuantities[item._id] || 1) <= 1}
-                        className="h-8 w-8 flex items-center justify-center border bg-green-500 rounded-l-md  disabled:opacity-50"
+                        className=" text-black items-center justify-center border border-gray-300 rounded-r-md bg-gray-50 disabled:opacity-50"
                       >
                         <Minus style={{color:"black !important"}} className="h-3 w-3 text-black" />
                       </button>
@@ -301,7 +302,7 @@ const CartPage = () => {
                       <button
                         onClick={() => handleQuantityChange(item._id, (editedQuantities[item._id] || 1) + 1)}
                         disabled={(editedQuantities[item._id] || 1) >= item.product.stock}
-                        className="h-8 w-8 flex items-center justify-center border border-gray-300 rounded-r-md bg-gray-50 disabled:opacity-50"
+                        className=" text-black items-center justify-center border border-gray-300 rounded-r-md bg-gray-50 disabled:opacity-50"
                       >
                         <Plus className="h-5 w-3 text-black" />
                       </button>
