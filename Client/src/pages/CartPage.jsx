@@ -6,6 +6,7 @@ import { useCart } from "../CartContext";
 import axios from "axios";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { ToastContainer, toast } from 'react-toastify';
 
 import {
   Trash2,
@@ -139,6 +140,7 @@ const CartPage = () => {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/cart/remove/${id}`);
       await fetchCart();
+      
     } catch {
       setError("Failed to delete item. Please try again.");
     } finally {
@@ -204,7 +206,8 @@ const CartPage = () => {
       }
     } catch (err) {
       console.error("Payment error:", err);
-      setError(err.response?.data?.message || "Something went wrong during checkout.");
+      setError(err.response?.data?.message || "you cross the limit.");
+      toast.error("You cross the limit");
     } finally {
       setProcessingPayment(false);
     }
@@ -479,6 +482,7 @@ const CartPage = () => {
           </div>
         </div>
       )}
+      <ToastContainer />
     </div>
   );
 };

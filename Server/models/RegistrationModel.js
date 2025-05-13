@@ -64,6 +64,10 @@ const registrationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  limit : {
+    type:Number,
+    require: true
+  },
   password:{
     type:String,
     required:true

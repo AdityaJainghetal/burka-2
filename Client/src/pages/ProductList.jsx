@@ -748,15 +748,6 @@ const ProductList = () => {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">MRP</label>
-                    <input
-                      type="number"
-                      value={editFormData.mrp}
-                      onChange={(e) => setEditFormData({...editFormData, mrp: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    />
-                  </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>

@@ -15,6 +15,7 @@ const Registration = async (req, res) => {
         city,
         address,
         password,
+        limit,
         discount
     } = req.body;
 
@@ -30,6 +31,7 @@ const Registration = async (req, res) => {
             state,
             city,
             address,
+            limit,
             password,
             discount
         });

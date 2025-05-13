@@ -295,6 +295,15 @@ const Orders = () => {
       sortable: true,
       width: "120px",
     },
+      {
+      name: "limit",
+      selector: (row) => row.orderItems[0].discountName?.limit,
+      sortable: true,
+      width: "120px",
+    },
+    
+  
+  
     {
       name: "Payment Status",
       cell: (row) => (

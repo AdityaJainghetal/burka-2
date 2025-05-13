@@ -42,6 +42,7 @@ const orderSchema = new mongoose.Schema({
         city: String,
         address: String,
         discount: Number,
+        limit:Number,
         createdAt: Date,
         updatedAt: Date
       },

@@ -16,6 +16,7 @@ const Registration = () => {
       email: "",
       state: "",
       city: "",
+      limit : "",
       address: "",
       password: "",
     },
@@ -31,6 +32,7 @@ const Registration = () => {
       city: Yup.string().required("Required"),
       address: Yup.string().required("Required"),
       password: Yup.string().required("Required"),
+      limit: Yup.string().required("Required"),
     }),
     onSubmit: async (values) => {
       try {
@@ -218,6 +220,22 @@ const Registration = () => {
           ></textarea>
           {formik.touched.address && formik.errors.address && (
             <p className="text-sm text-red-500">{formik.errors.address}</p>
+          )}
+        </div>
+
+              <div>
+          <label className="block font-medium mb-1">Limit</label>
+          <input
+            type="number"
+            name="limit"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.limit}
+            className="w-full border px-4 py-2 rounded-lg"
+            placeholder="limit"
+          />
+          {formik.touched.limit && formik.errors.limit && (
+            <p className="text-sm text-red-500">{formik.errors.limit}</p>
           )}
         </div>
 
