@@ -14,7 +14,7 @@
     "@ckeditor/ckeditor5-react": "^9.5.0",
     "@reduxjs/toolkit": "^2.6.1",
     "@zxing/library": "^0.20.0",
-    "axios": "^1.6.2",
+    "axios": "^1.13.5",
     "chart.js": "^4.4.9",
     "dayjs": "^1.11.13",
     "file-saver": "^2.0.5",
